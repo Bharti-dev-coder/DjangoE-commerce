@@ -17,9 +17,21 @@ def run(*args):
     subprocess.check_call([sys.executable, 'manage.py', *args])
 
 
+def database_url_for_migrations():
+    for name in (
+        'DATABASE_URL_UNPOOLED',
+        'POSTGRES_URL_NON_POOLING',
+        'DATABASE_URL',
+        'POSTGRES_URL',
+    ):
+        value = os.getenv(name, '').strip()
+        if value.startswith(('postgres://', 'postgresql://', 'mysql://')):
+            return value
+    return ''
+
+
 def configured_database():
-    database_url = os.getenv('DATABASE_URL', '').strip().lower()
-    if database_url.startswith(('postgres://', 'postgresql://', 'mysql://')):
+    if database_url_for_migrations():
         return True
     engine = os.getenv('DB_ENGINE', '').strip()
     return engine in {
@@ -31,6 +43,11 @@ def configured_database():
 def main():
     run('collectstatic', '--noinput')
     if configured_database():
+        # Use the direct Neon connection for schema changes; pooled PgBouncer
+        # connections are intended for the runtime and can reject some DDL.
+        migration_url = database_url_for_migrations()
+        if migration_url:
+            os.environ['DATABASE_URL'] = migration_url
         run('migrate', '--noinput')
         if os.getenv('SEED_DEMO_DATA', '').strip().lower() in {
             '1', 'true', 'yes', 'on',

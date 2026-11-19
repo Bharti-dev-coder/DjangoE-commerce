@@ -183,7 +183,12 @@ def _database_from_url(database_url):
     return config
 
 
-_database_url = os.getenv('DATABASE_URL', '').strip()
+_database_url = (
+    os.getenv('DATABASE_URL', '').strip()
+    or os.getenv('DATABASE_URL_UNPOOLED', '').strip()
+    or os.getenv('POSTGRES_URL', '').strip()
+    or os.getenv('POSTGRES_URL_NON_POOLING', '').strip()
+)
 if _database_url:
     DATABASES = {'default': _database_from_url(_database_url)}
 else:
@@ -259,6 +264,9 @@ STATIC_ROOT = BASE_DIR / 'staticfiles'
 # Uploaded product images. The development URLconf serves MEDIA_ROOT only while DEBUG=True.
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
+# Set this to true only when a deployment has no object storage and the demo
+# media generated during the build should be served by Django.
+SERVE_MEDIA = _env_bool('SERVE_MEDIA', False)
 
 # Authentication destinations used by the storefront and Django's login_required decorator.
 LOGIN_URL = 'user_login'
