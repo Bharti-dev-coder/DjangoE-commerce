@@ -82,6 +82,15 @@ class Command(BaseCommand):
             media_products.mkdir(parents=True, exist_ok=True)
 
         for slug, name, category_slug, price, image_number, description in PRODUCTS:
+            source = settings.BASE_DIR / 'static' / 'theme' / 'img' / f'product-{image_number}.png'
+            image_name = f'products/demo-{slug}.png'
+            destination = settings.MEDIA_ROOT / image_name
+
+            # Recreate demo images even when the database rows already exist.
+            # Ephemeral deployments start each build with an empty media folder.
+            if not dry_run and source.exists() and not destination.exists():
+                shutil.copyfile(source, destination)
+
             existing = Product.objects.filter(slug=slug).first()
             if existing is not None:
                 skipped_products += 1
@@ -90,12 +99,6 @@ class Command(BaseCommand):
             if dry_run:
                 self.stdout.write(f'[dry-run] Would create product: {name}')
                 continue
-
-            source = settings.BASE_DIR / 'static' / 'theme' / 'img' / f'product-{image_number}.png'
-            image_name = f'products/demo-{slug}.png'
-            destination = settings.MEDIA_ROOT / image_name
-            if source.exists() and not destination.exists():
-                shutil.copyfile(source, destination)
 
             Product.objects.create(
                 slug=slug,
