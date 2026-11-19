@@ -33,8 +33,8 @@ to runtime.
 
 ## Configure the Vercel project
 
-Add a Postgres database from the Vercel Marketplace (for example, Neon). The
-integration supplies `DATABASE_URL` automatically.
+Add a Postgres database from **Storage → Create Database → Neon**. The
+integration supplies the connection variables automatically.
 
 Set these environment variables in **Vercel → Project → Settings → Environment
 Variables**:
@@ -43,9 +43,11 @@ Variables**:
 | --- | --- |
 | `SECRET_KEY` | A new random Django secret |
 | `DEBUG` | `False` |
-| `DATABASE_URL` | Supplied by the Postgres integration |
+| `DATABASE_URL` | Supplied by the Neon integration |
+| `DATABASE_URL_UNPOOLED` | Supplied by the Neon integration; used for migrations |
 | `OLLAMA_ENABLED` | `false` |
-| `ALLOWED_HOSTS` | Custom domains only; your `*.vercel.app` host is automatic |
+| `SERVE_MEDIA` | `true` only for the demo catalog; use object storage otherwise |
+| `ALLOWED_HOSTS` | Add a custom domain; your `*.vercel.app` host is automatic |
 | `CSRF_TRUSTED_ORIGINS` | `https://your-domain.com` for custom domains |
 | `EMAIL_HOST_USER` / `EMAIL_HOST_PASSWORD` | If email is required |
 | `RAZORPAY_KEY_ID` / `RAZORPAY_KEY_SECRET` | If checkout is required |
@@ -56,34 +58,41 @@ Generate a production secret with:
 .\venv\Scripts\python.exe -c "from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())"
 ```
 
-`build.py` runs migrations automatically whenever `DATABASE_URL` uses
-Postgres or MySQL. Watch the deployment log for the migration step.
+`build.py` runs migrations automatically whenever a hosted Postgres or MySQL
+URL is configured. It prefers `DATABASE_URL_UNPOOLED` for schema changes and
+uses the pooled `DATABASE_URL` at runtime. Watch the deployment log for the
+migration step.
 
 ## Database contents
 
 The first deployment starts with an empty database. Existing local MySQL data is
-not copied automatically. To populate the demo catalog in the hosted database,
-set `SEED_DEMO_DATA=true` for one deployment. `build.py` will run
-`populate_demo_data` after migrations. Remove that variable after the first
-successful deployment so later builds do not repeat the seed step.
+not copied automatically. This demo deployment keeps `SEED_DEMO_DATA=true` so
+each build recreates the demo catalog images in `media/`; the command is
+idempotent and leaves existing rows alone. Remove it once real product data and
+object storage are configured.
 
-The demo command copies its images into `media/`, so connect object storage or
-otherwise serve those files before relying on the demo images in production.
+This demo also sets `SERVE_MEDIA=true` so Django serves the generated images.
+For real uploads, connect object storage; the serverless filesystem is
+temporary.
 
 ## Remaining Vercel limitations
 
 - **Ollama cannot run on Vercel.** With `OLLAMA_ENABLED=false`, the assistant
   uses its deterministic catalog search, recommendations, support, and order
   fallback. No cloud AI key is used.
-- **Media files are ephemeral.** Uploaded product images and locally generated
-  demo images need object storage such as S3 or Cloudinary before file uploads
-  can persist in production. `media/` is also gitignored, so it is not part of
-  the repository.
+- **Media files are ephemeral.** The demo images generated during the build are
+  served by Django while `SERVE_MEDIA=true`. Real uploads need object storage
+  such as S3 or Cloudinary because Vercel's filesystem is temporary.
 - **SQLite is not persistent on Vercel.** The SQLite fallback only keeps builds
   working; use a hosted database for the deployed app.
 - **Rotate exposed credentials.** The previous committed settings contained a
   database password and Django secret. Treat both as compromised, rotate them,
   and use Vercel environment variables from now on.
+
+## Deployed project
+
+- Public storefront: https://django-e-commerce-bharti20.vercel.app
+- Vercel project: `bharti20/django-e-commerce`
 
 ## Local development
 
