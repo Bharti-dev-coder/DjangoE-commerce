@@ -1,0 +1,141 @@
+{% extends "app.html" %}
+{% load store_tags %}
+
+{% block title %}Pay for order {{ order.order_number }} | EuphoriaDJ{% endblock %}
+{% block meta_description %}Complete the verified Razorpay payment for your EuphoriaDJ order.{% endblock %}
+
+{% block content %}
+<section class="page-banner">
+    <div class="container">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb breadcrumb-light mb-3">
+                <li class="breadcrumb-item"><a href="{% url 'home_page' %}">Home</a></li>
+                <li class="breadcrumb-item"><a href="{% url 'order_list' %}">My orders</a></li>
+                <li class="breadcrumb-item"><a href="{% url 'order_detail' order.order_number %}">{{ order.order_number }}</a></li>
+                <li class="breadcrumb-item active text-white" aria-current="page">Payment</li>
+            </ol>
+        </nav>
+        <h1 class="mb-2">Complete payment</h1>
+        <p class="mb-0 text-white-50">The order is confirmed only after Razorpay's server-side signature verification.</p>
+    </div>
+</section>
+
+<section class="container py-5">
+    <div class="row justify-content-center g-4 py-3">
+        <div class="col-lg-8 col-xl-7">
+            <div class="checkout-card p-4 p-lg-5">
+                <div class="d-flex flex-wrap justify-content-between gap-3 border-bottom pb-4 mb-4">
+                    <div>
+                        <span class="text-muted small d-block">Order</span>
+                        <span class="h4">{{ order.order_number }}</span>
+                        <span class="text-muted small d-block">{{ order.created_at|date:"M j, Y · g:i A" }}</span>
+                    </div>
+                    <div class="text-lg-end">
+                        <span class="text-muted small d-block">Amount payable</span>
+                        <span class="h3 text-primary">{{ order.final_total|money }}</span>
+                    </div>
+                </div>
+
+                <div class="d-flex flex-wrap gap-2 mb-4">
+                    <span class="badge bg-{{ order.payment_status_css }}">{{ order.get_payment_status_display }}</span>
+                    <span class="badge bg-{{ order.order_status_css }}">{{ order.get_order_status_display }}</span>
+                    <span class="badge bg-light text-dark">{{ order.total_quantity }} item{{ order.total_quantity|pluralize }}</span>
+                </div>
+
+                {% if order.payment_status == 'failed' %}
+                    <div class="alert alert-warning" role="alert">
+                        <i class="fas fa-exclamation-triangle me-2"></i>The previous payment attempt was not verified. You can safely retry below.
+                    </div>
+                {% endif %}
+
+                <div class="alert alert-info" role="alert">
+                    <i class="fas fa-shield-alt me-2"></i>
+                    Razorpay will open in a secure payment window. Do not close this page until the gateway reports the result.
+                    EuphoriaDJ will verify the payment on the server before marking this order paid.
+                </div>
+
+                <button type="button" id="razorpayButton" class="btn btn-primary btn-lg rounded-pill w-100 py-3">
+                    <i class="fas fa-lock me-2"></i>Pay {{ order.final_total|money }} securely
+                </button>
+
+                <div id="paymentCancelled" class="alert alert-secondary mt-3 d-none" role="alert">
+                    Payment was cancelled or the window was closed. This order remains pending, so you can retry or return to your orders.
+                </div>
+
+                <div class="d-flex flex-wrap justify-content-between gap-2 mt-4">
+                    <a href="{% url 'order_detail' order.order_number %}" class="btn btn-outline-secondary rounded-pill px-4">Return to order</a>
+                    <a href="{% url 'order_list' %}" class="btn btn-outline-primary rounded-pill px-4">My orders</a>
+                </div>
+            </div>
+
+            <p class="small text-muted text-center mt-4 mb-0">
+                <i class="fas fa-info-circle me-1"></i>
+                If you cancel or the payment fails, the order stays pending. No payment is marked successful without backend verification.
+            </p>
+        </div>
+    </div>
+</section>
+
+<form id="razorpayVerifyForm" method="post" action="{% url 'verify_payment' order.order_number %}" class="d-none">
+    {% csrf_token %}
+    <input type="hidden" name="razorpay_payment_id" value="">
+    <input type="hidden" name="razorpay_order_id" value="">
+    <input type="hidden" name="razorpay_signature" value="">
+</form>
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+<script>
+(function () {
+    var payButton = document.getElementById('razorpayButton');
+    var cancelledMessage = document.getElementById('paymentCancelled');
+    var verifyForm = document.getElementById('razorpayVerifyForm');
+
+    if (!payButton || typeof Razorpay === 'undefined') {
+        if (payButton) {
+            payButton.disabled = true;
+            payButton.innerHTML = '<i class="fas fa-exclamation-triangle me-2"></i>Payment window unavailable';
+        }
+        return;
+    }
+
+    var options = {
+        key: '{{ razorpay_key_id|escapejs }}',
+        amount: '{{ amount_paise }}',
+        currency: '{{ currency|escapejs }}',
+        name: '{{ store_profile.business_name|default:"EuphoriaDJ"|escapejs }}',
+        description: 'Order {{ order.order_number|escapejs }}',
+        order_id: '{{ razorpay_order_id|escapejs }}',
+        prefill: {
+            name: '{{ order.customer_name|escapejs }}',
+            email: '{{ order.customer_email|escapejs }}',
+            contact: '{{ order.customer_phone|escapejs }}'
+        },
+        notes: {
+            order_number: '{{ order.order_number|escapejs }}'
+        },
+        theme: {
+            color: '#ff6b00'
+        },
+        handler: function (response) {
+            verifyForm.querySelector('[name="razorpay_payment_id"]').value = response.razorpay_payment_id || '';
+            verifyForm.querySelector('[name="razorpay_order_id"]').value = response.razorpay_order_id || '';
+            verifyForm.querySelector('[name="razorpay_signature"]').value = response.razorpay_signature || '';
+            verifyForm.submit();
+        },
+        modal: {
+            ondismiss: function () {
+                cancelledMessage.classList.remove('d-none');
+            }
+        }
+    };
+
+    var razorpay = new Razorpay(options);
+    payButton.addEventListener('click', function () {
+        cancelledMessage.classList.add('d-none');
+        razorpay.open();
+    });
+})();
+</script>
+{% endblock %}

@@ -1,0 +1,164 @@
+{% extends "app.html" %}
+
+{% block title %}Shop | EuphoriaDJ{% endblock %}
+{% block meta_description %}Search products by name, filter the EuphoriaDJ electronics catalog by category and price, and sort the results.{% endblock %}
+
+{% block content %}
+<section class="page-banner">
+    <div class="container">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb breadcrumb-light mb-3">
+                <li class="breadcrumb-item"><a href="{% url 'home_page' %}">Home</a></li>
+                <li class="breadcrumb-item active text-white" aria-current="page">Shop</li>
+            </ol>
+        </nav>
+        <h1 class="mb-2">Shop the collection</h1>
+        <p class="mb-0 text-white-50">Search by name, narrow by category and price, then sort the results.</p>
+    </div>
+</section>
+
+<div class="container-fluid py-5">
+    <div class="container py-3">
+        <div class="row g-4">
+            <aside class="col-lg-3">
+                <div class="filter-card p-4 sticky-lg-top" style="top: 1rem;">
+                    <div class="d-flex align-items-center justify-content-between mb-3">
+                        <h2 class="h5 mb-0">Filters</h2>
+                        <a href="{% url 'shop_page' %}" class="small text-decoration-none">Reset all</a>
+                    </div>
+                    <form method="get" action="{% url 'shop_page' %}" id="shopFilters">
+                        <div class="mb-3">
+                            <label for="shop-search" class="form-label">Search</label>
+                            <input id="shop-search" type="search" name="q" value="{{ q }}" class="form-control" placeholder="Product name or description">
+                        </div>
+                        <div class="mb-3">
+                            <label for="shop-category" class="form-label">Category</label>
+                            <select id="shop-category" name="category" class="form-select">
+                                <option value="">All categories</option>
+                                {% for category in categories %}
+                                    <option value="{{ category.id }}" {% if selected_category == category.id|stringformat:"s" %}selected{% endif %}>{{ category.name }} ({{ category.product_count }})</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <span class="form-label d-block">Price range ({{ currency_code }})</span>
+                            <div class="row g-2">
+                                <div class="col-6">
+                                    <label for="min-price" class="visually-hidden">Minimum price</label>
+                                    <input id="min-price" type="number" min="0" step="0.01" name="min_price" value="{{ min_price }}" class="form-control" placeholder="Min">
+                                </div>
+                                <div class="col-6">
+                                    <label for="max-price" class="visually-hidden">Maximum price</label>
+                                    <input id="max-price" type="number" min="0" step="0.01" name="max_price" value="{{ max_price }}" class="form-control" placeholder="Max">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mb-4">
+                            <label for="shop-sort" class="form-label">Sort by</label>
+                            <select id="shop-sort" name="sort" class="form-select">
+                                <option value="newest" {% if sort == 'newest' %}selected{% endif %}>Newest first</option>
+                                <option value="name_asc" {% if sort == 'name_asc' %}selected{% endif %}>Name A–Z</option>
+                                <option value="name_desc" {% if sort == 'name_desc' %}selected{% endif %}>Name Z–A</option>
+                                <option value="price_asc" {% if sort == 'price_asc' %}selected{% endif %}>Price: low to high</option>
+                                <option value="price_desc" {% if sort == 'price_desc' %}selected{% endif %}>Price: high to low</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="btn btn-primary rounded-pill w-100 py-2"><i class="fas fa-filter me-2"></i>Apply filters</button>
+                    </form>
+
+                    <hr class="my-4">
+                    <h3 class="h6 text-uppercase text-muted mb-3">Browse categories</h3>
+                    <div class="d-flex flex-column gap-1">
+                        <a href="{% url 'shop_page' %}" class="category-filter-link {% if not selected_category %}active{% endif %}">
+                            <span>All products</span>
+                            <span class="small text-muted">{{ total_product_count }}</span>
+                        </a>
+                        {% for category in categories %}
+                            <a href="{% url 'shop_page' %}?category={{ category.id }}{% if q %}&amp;q={{ q|urlencode }}{% endif %}"
+                               class="category-filter-link {% if selected_category == category.id|stringformat:"s" %}active{% endif %}">
+                                <span>{{ category.name }}</span>
+                                <span class="small text-muted">{{ category.product_count }}</span>
+                            </a>
+                        {% endfor %}
+                    </div>
+                </div>
+            </aside>
+
+            <section class="col-lg-9" aria-labelledby="shop-results-heading">
+                <div class="d-flex flex-wrap justify-content-between align-items-end gap-3 mb-4">
+                    <div>
+                        <span class="section-kicker">Catalog</span>
+                        <h2 id="shop-results-heading" class="h3 mb-1">
+                            {% if active_category %}{{ active_category.name }}{% else %}All products{% endif %}
+                        </h2>
+                        <p class="text-muted mb-0 small">
+                            {{ page_obj.paginator.count }} product{{ page_obj.paginator.count|pluralize }}
+                            {% if q %}matching “{{ q }}”{% endif %}
+                        </p>
+                    </div>
+                    {% if q or selected_category or min_price or max_price or sort != 'newest' %}
+                        <a href="{% url 'shop_page' %}" class="btn btn-outline-secondary rounded-pill px-4">
+                            <i class="fas fa-times me-2"></i>Clear filters
+                        </a>
+                    {% endif %}
+                </div>
+
+                <div class="row g-4 product">
+                    {% for product in products %}
+                        <div class="col-sm-6 col-xl-4">
+                            {% include "partials/product_card.html" with product=product %}
+                        </div>
+                    {% empty %}
+                        <div class="col-12">
+                            <div class="empty-state text-center">
+                                <i class="fas fa-search fa-2x text-primary mb-3"></i>
+                                <h3 class="h5">No products match your filters</h3>
+                                {% if q or selected_category or min_price or max_price %}
+                                    <p class="text-muted mb-3">Try a different search, category, or price range — or ask the assistant to interpret it.</p>
+                                    <a href="{% url 'shop_page' %}" class="btn btn-primary rounded-pill px-4">Clear filters</a>
+                                    <button type="button" class="btn btn-outline-primary rounded-pill px-4 ms-2 mt-2 mt-sm-0"
+                                            data-ai-open
+                                            data-ai-prompt="{% if q %}Find products matching {{ q }}{% else %}Help me find a product{% endif %}">
+                                        <i class="fas fa-comments me-2"></i>Ask the assistant
+                                    </button>
+                                {% else %}
+                                    <p class="text-muted mb-3">No products are available yet. Add products in Django Admin, then refresh this page.</p>
+                                    <a href="{% url 'home_page' %}" class="btn btn-primary rounded-pill px-4">Back to home</a>
+                                {% endif %}
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+
+                {% if page_obj.has_other_pages %}
+                    <nav class="mt-5" aria-label="Shop pagination">
+                        <ul class="pagination justify-content-center">
+                            {% if page_obj.has_previous %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?{% if querystring %}{{ querystring }}&amp;{% endif %}page={{ page_obj.previous_page_number }}" aria-label="Previous page">&laquo; Previous</a>
+                                </li>
+                            {% else %}
+                                <li class="page-item disabled"><span class="page-link">&laquo; Previous</span></li>
+                            {% endif %}
+                            {% for number in page_obj.paginator.page_range %}
+                                {% if number == page_obj.number %}
+                                    <li class="page-item active" aria-current="page"><span class="page-link">{{ number }}</span></li>
+                                {% else %}
+                                    <li class="page-item"><a class="page-link" href="?{% if querystring %}{{ querystring }}&amp;{% endif %}page={{ number }}">{{ number }}</a></li>
+                                {% endif %}
+                            {% endfor %}
+                            {% if page_obj.has_next %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?{% if querystring %}{{ querystring }}&amp;{% endif %}page={{ page_obj.next_page_number }}" aria-label="Next page">Next &raquo;</a>
+                                </li>
+                            {% else %}
+                                <li class="page-item disabled"><span class="page-link">Next &raquo;</span></li>
+                            {% endif %}
+                        </ul>
+                    </nav>
+                {% endif %}
+            </section>
+        </div>
+    </div>
+</div>
+{% endblock %}

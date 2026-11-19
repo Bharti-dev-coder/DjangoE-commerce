@@ -1,0 +1,70 @@
+{% extends "app.html" %}
+{% load static %}
+
+{% block title %}Service | EuphoriaDJ{% endblock %}
+{% block meta_description %}How the EuphoriaDJ storefront works, including accounts, favorites, cart, checkout, and order history.{% endblock %}
+
+{% block content %}
+<section class="page-banner">
+    <div class="container">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb breadcrumb-light mb-3">
+                <li class="breadcrumb-item"><a href="{% url 'home_page' %}">Home</a></li>
+                <li class="breadcrumb-item active text-white" aria-current="page">Service</li>
+            </ol>
+        </nav>
+        <h1 class="mb-2">Store information</h1>
+        <p class="mb-0 text-white-50">What the storefront supports today, and where to go next.</p>
+    </div>
+</section>
+
+<section class="container py-5">
+    <div class="row g-4 py-3">
+        <div class="col-md-6 col-lg-4">
+            <div class="border rounded-4 p-4 h-100">
+                <span class="category-icon"><i class="fas fa-search"></i></span>
+                <h2 class="h5">Catalog search and filters</h2>
+                <p class="text-muted mb-0">Use the shop page to search product names and descriptions, filter by category and price, sort the results, and move through pages.</p>
+            </div>
+        </div>
+        <div class="col-md-6 col-lg-4">
+            <div class="border rounded-4 p-4 h-100">
+                <span class="category-icon"><i class="fas fa-heart"></i></span>
+                <h2 class="h5">Favorites</h2>
+                <p class="text-muted mb-0">Signed-in shoppers can add or remove products from a private favorites list. Duplicate entries are prevented by the database.</p>
+            </div>
+        </div>
+        <div class="col-md-6 col-lg-4">
+            <div class="border rounded-4 p-4 h-100">
+                <span class="category-icon"><i class="fas fa-shopping-cart"></i></span>
+                <h2 class="h5">Cart and coupons</h2>
+                <p class="text-muted mb-0">Add products in quantities from 1 to 5, apply one coupon, and review the subtotal, discount, shipping, tax, and final payable amount. Prices come from the database and totals use Decimal values.</p>
+            </div>
+        </div>
+        <div class="col-md-6 col-lg-4">
+            <div class="border rounded-4 p-4 h-100">
+                <span class="category-icon"><i class="fas fa-user-shield"></i></span>
+                <h2 class="h5">Accounts</h2>
+                <p class="text-muted mb-0">Registration validates required fields and passwords. A welcome email is attempted after the account is created; an email failure does not remove the account.</p>
+            </div>
+        </div>
+        <div class="col-md-6 col-lg-4">
+            <div class="border rounded-4 p-4 h-100">
+                <span class="category-icon"><i class="fas fa-lock"></i></span>
+                <h2 class="h5">Protected actions</h2>
+                <p class="text-muted mb-0">Cart and favorite changes use POST requests with CSRF protection. Visitors are redirected to the existing sign-in page and returned safely afterward.</p>
+            </div>
+        </div>
+        <div class="col-md-6 col-lg-4">
+            <div class="border rounded-4 p-4 h-100">
+                <span class="category-icon"><i class="fas fa-box"></i></span>
+                <h2 class="h5">Checkout and orders</h2>
+                <p class="text-muted mb-0">Checkout supports saved delivery addresses, Cash on Delivery, and Razorpay online payments when gateway credentials are configured. Customers can view private order history and payment status after ordering.</p>
+            </div>
+        </div>
+    </div>
+    <div class="text-center mt-4">
+        <a href="{% url 'contact_page' %}" class="btn btn-primary rounded-pill px-4">Contact support</a>
+    </div>
+</section>
+{% endblock %}

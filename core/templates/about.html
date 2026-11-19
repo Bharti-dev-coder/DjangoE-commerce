@@ -1,0 +1,66 @@
+{% extends "app.html" %}
+{% load static %}
+
+{% block title %}About | EuphoriaDJ{% endblock %}
+{% block meta_description %}About the EuphoriaDJ electronics storefront.{% endblock %}
+
+{% block content %}
+<section class="page-banner">
+    <div class="container">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb breadcrumb-light mb-3">
+                <li class="breadcrumb-item"><a href="{% url 'home_page' %}">Home</a></li>
+                <li class="breadcrumb-item active text-white" aria-current="page">About</li>
+            </ol>
+        </nav>
+        <h1 class="mb-2">About EuphoriaDJ</h1>
+        <p class="mb-0 text-white-50">A focused storefront for discovering and shortlisting everyday technology.</p>
+    </div>
+</section>
+
+<section class="container py-5">
+    <div class="row g-5 align-items-center py-3">
+        <div class="col-lg-7">
+            <span class="section-kicker">Our approach</span>
+            <h2 class="section-heading mb-3">A clear catalog, not a crowded aisle.</h2>
+            <p class="text-muted">EuphoriaDJ is built around a simple idea: make it easy to find a product, understand its price, and keep track of the items worth revisiting. The storefront uses the project’s existing Django account system, so favorites and carts belong to the person who created them.</p>
+            <p class="text-muted mb-4">Browse by category, search by name or description, narrow the price range, and sort the results. When you find something useful, save it to your private favorites list or add it to your cart.</p>
+            <div class="d-flex flex-wrap gap-3">
+                <a href="{% url 'shop_page' %}" class="btn btn-primary rounded-pill px-4">Browse products</a>
+                <a href="{% url 'contact_page' %}" class="btn btn-outline-primary rounded-pill px-4">Contact the team</a>
+            </div>
+        </div>
+        <div class="col-lg-5">
+            <img src="{% static 'theme/img/header-img.jpg' %}" class="img-fluid rounded-4 shadow-sm" alt="Electronics on display">
+        </div>
+    </div>
+</section>
+
+<section class="bg-light py-5">
+    <div class="container py-3">
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="bg-white rounded-4 p-4 h-100 border">
+                    <span class="category-icon"><i class="fas fa-search"></i></span>
+                    <h3 class="h5">Find products</h3>
+                    <p class="text-muted mb-0">Search and filter by category, price, and arrival order using the shop controls.</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="bg-white rounded-4 p-4 h-100 border">
+                    <span class="category-icon"><i class="fas fa-heart"></i></span>
+                    <h3 class="h5">Save a shortlist</h3>
+                    <p class="text-muted mb-0">Favorites are stored against your account and are never shared with other shoppers.</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="bg-white rounded-4 p-4 h-100 border">
+                    <span class="category-icon"><i class="fas fa-shopping-cart"></i></span>
+                    <h3 class="h5">Keep a cart and order history</h3>
+                    <p class="text-muted mb-0">Your cart persists between visits and calculates line totals from the stored product price. Checkout keeps an order snapshot, and order history is visible only to your account.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

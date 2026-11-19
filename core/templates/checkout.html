@@ -1,0 +1,276 @@
+{% extends "app.html" %}
+{% load static store_tags %}
+
+{% block title %}Checkout | EuphoriaDJ{% endblock %}
+{% block meta_description %}Review your EuphoriaDJ cart, delivery address, coupon, and payment method before placing an order.{% endblock %}
+
+{% block content %}
+<section class="page-banner">
+    <div class="container">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb breadcrumb-light mb-3">
+                <li class="breadcrumb-item"><a href="{% url 'home_page' %}">Home</a></li>
+                <li class="breadcrumb-item"><a href="{% url 'cart' %}">Cart</a></li>
+                <li class="breadcrumb-item active text-white" aria-current="page">Checkout</li>
+            </ol>
+        </nav>
+        <h1 class="mb-2">Checkout</h1>
+        <p class="mb-0 text-white-50">Confirm your details, delivery address, and payment method.</p>
+    </div>
+</section>
+
+<section class="container-fluid py-5">
+    <div class="container py-3">
+        <form method="post" action="{% url 'checkout' %}" id="checkoutForm" novalidate>
+            {% csrf_token %}
+            <input type="hidden" name="checkout_token" value="{{ checkout_token }}">
+
+            {% if form.non_field_errors %}
+                <div class="alert alert-danger" role="alert">
+                    {% for error in form.non_field_errors %}<div>{{ error }}</div>{% endfor %}
+                </div>
+            {% endif %}
+
+            <div class="row g-4">
+                <div class="col-lg-7">
+                    <div class="checkout-card p-4 p-lg-5 mb-4">
+                        <div class="d-flex align-items-center gap-3 mb-4">
+                            <span class="checkout-step">1</span>
+                            <div>
+                                <h2 class="h4 mb-1">Customer information</h2>
+                                <p class="text-muted small mb-0">We use these details for the order confirmation.</p>
+                            </div>
+                        </div>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label for="{{ form.full_name.id_for_label }}" class="form-label">{{ form.full_name.label }}</label>
+                                {{ form.full_name }}
+                                {% if form.full_name.errors %}<div class="invalid-feedback d-block">{{ form.full_name.errors|striptags }}</div>{% endif %}
+                            </div>
+                            <div class="col-md-6">
+                                <label for="{{ form.email.id_for_label }}" class="form-label">{{ form.email.label }}</label>
+                                {{ form.email }}
+                                {% if form.email.errors %}<div class="invalid-feedback d-block">{{ form.email.errors|striptags }}</div>{% endif %}
+                            </div>
+                            <div class="col-md-6">
+                                <label for="{{ form.phone.id_for_label }}" class="form-label">{{ form.phone.label }}</label>
+                                {{ form.phone }}
+                                {% if form.phone.errors %}<div class="invalid-feedback d-block">{{ form.phone.errors|striptags }}</div>{% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="checkout-card p-4 p-lg-5 mb-4">
+                        <div class="d-flex align-items-center gap-3 mb-4">
+                            <span class="checkout-step">2</span>
+                            <div>
+                                <h2 class="h4 mb-1">Delivery address</h2>
+                                <p class="text-muted small mb-0">Choose a saved address or enter a new one.</p>
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label for="{{ form.saved_address.id_for_label }}" class="form-label">{{ form.saved_address.label }}</label>
+                            {{ form.saved_address }}
+                            {% if form.saved_address.errors %}<div class="invalid-feedback d-block">{{ form.saved_address.errors|striptags }}</div>{% endif %}
+                            <p class="small text-muted mt-2 mb-0">Select a saved address to reuse it, or leave this on “Use a new delivery address”.</p>
+                        </div>
+
+                        <div id="new-address-fields">
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label for="{{ form.delivery_full_name.id_for_label }}" class="form-label">{{ form.delivery_full_name.label }}</label>
+                                    {{ form.delivery_full_name }}
+                                    {% if form.delivery_full_name.errors %}<div class="invalid-feedback d-block">{{ form.delivery_full_name.errors|striptags }}</div>{% endif %}
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="{{ form.delivery_phone.id_for_label }}" class="form-label">{{ form.delivery_phone.label }}</label>
+                                    {{ form.delivery_phone }}
+                                    {% if form.delivery_phone.errors %}<div class="invalid-feedback d-block">{{ form.delivery_phone.errors|striptags }}</div>{% endif %}
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="{{ form.house_number.id_for_label }}" class="form-label">{{ form.house_number.label }}</label>
+                                    {{ form.house_number }}
+                                    {% if form.house_number.errors %}<div class="invalid-feedback d-block">{{ form.house_number.errors|striptags }}</div>{% endif %}
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="{{ form.street.id_for_label }}" class="form-label">{{ form.street.label }}</label>
+                                    {{ form.street }}
+                                    {% if form.street.errors %}<div class="invalid-feedback d-block">{{ form.street.errors|striptags }}</div>{% endif %}
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="{{ form.landmark.id_for_label }}" class="form-label">{{ form.landmark.label }}</label>
+                                    {{ form.landmark }}
+                                    {% if form.landmark.errors %}<div class="invalid-feedback d-block">{{ form.landmark.errors|striptags }}</div>{% endif %}
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="{{ form.city.id_for_label }}" class="form-label">{{ form.city.label }}</label>
+                                    {{ form.city }}
+                                    {% if form.city.errors %}<div class="invalid-feedback d-block">{{ form.city.errors|striptags }}</div>{% endif %}
+                                </div>
+                                <div class="col-md-4">
+                                    <label for="{{ form.state.id_for_label }}" class="form-label">{{ form.state.label }}</label>
+                                    {{ form.state }}
+                                    {% if form.state.errors %}<div class="invalid-feedback d-block">{{ form.state.errors|striptags }}</div>{% endif %}
+                                </div>
+                                <div class="col-md-4">
+                                    <label for="{{ form.pin_code.id_for_label }}" class="form-label">{{ form.pin_code.label }}</label>
+                                    {{ form.pin_code }}
+                                    {% if form.pin_code.errors %}<div class="invalid-feedback d-block">{{ form.pin_code.errors|striptags }}</div>{% endif %}
+                                </div>
+                                <div class="col-md-4">
+                                    <label for="{{ form.country.id_for_label }}" class="form-label">{{ form.country.label }}</label>
+                                    {{ form.country }}
+                                    {% if form.country.errors %}<div class="invalid-feedback d-block">{{ form.country.errors|striptags }}</div>{% endif %}
+                                </div>
+                            </div>
+                            <div class="form-check mt-4">
+                                {{ form.save_address }}
+                                <label class="form-check-label" for="{{ form.save_address.id_for_label }}">{{ form.save_address.label }}</label>
+                                {% if form.save_address.errors %}<div class="invalid-feedback d-block">{{ form.save_address.errors|striptags }}</div>{% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="checkout-card p-4 p-lg-5">
+                        <div class="d-flex align-items-center gap-3 mb-4">
+                            <span class="checkout-step">3</span>
+                            <div>
+                                <h2 class="h4 mb-1">Payment method</h2>
+                                <p class="text-muted small mb-0">Choose how you want to pay for this order.</p>
+                            </div>
+                        </div>
+
+                        <div class="payment-options">
+                            {% for radio in form.payment_method %}
+                                <div class="payment-option form-check">
+                                    {{ radio.tag }}
+                                    <label class="form-check-label" for="{{ radio.id_for_label }}">
+                                        <strong>{{ radio.choice_label }}</strong>
+                                        {% if radio.data.value == 'cod' %}
+                                            <span class="d-block small text-muted">Pay the delivery partner when your order arrives. Payment status stays pending until collection.</span>
+                                        {% else %}
+                                            <span class="d-block small text-muted">Pay securely through Razorpay. The order is confirmed only after server-side signature verification.</span>
+                                        {% endif %}
+                                    </label>
+                                </div>
+                            {% endfor %}
+                        </div>
+                        {% if form.payment_method.errors %}<div class="invalid-feedback d-block">{{ form.payment_method.errors|striptags }}</div>{% endif %}
+                        {% if not razorpay_enabled %}
+                            <div class="alert alert-warning small mt-3 mb-0" role="alert">
+                                <i class="fas fa-info-circle me-2"></i>Online payment is not configured yet. Cash on Delivery is available. Add
+                                <code>RAZORPAY_KEY_ID</code> and <code>RAZORPAY_KEY_SECRET</code> to the environment to enable Razorpay.
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="col-lg-5">
+                    <div class="order-summary p-4 sticky-lg-top" style="top: 1rem;">
+                        <div class="d-flex justify-content-between align-items-start gap-3 mb-4">
+                            <div>
+                                <h2 class="h4 mb-1">Order review</h2>
+                                <p class="text-muted small mb-0">{{ total_quantity }} item{{ total_quantity|pluralize }}</p>
+                            </div>
+                            <a href="{% url 'cart' %}" class="btn btn-sm btn-outline-secondary rounded-pill">Edit cart</a>
+                        </div>
+
+                        <div class="checkout-items mb-4">
+                            {% for item in items %}
+                                <div class="checkout-item d-flex gap-3 py-3">
+                                    {% if item.product.image %}
+                                        <img src="{{ item.product.image.url }}" class="checkout-thumb" alt="{{ item.product.name }}">
+                                    {% else %}
+                                        <img src="{% static 'theme/img/product-1.png' %}" class="checkout-thumb" alt="{{ item.product.name }}">
+                                    {% endif %}
+                                    <div class="flex-grow-1">
+                                        <div class="d-flex justify-content-between gap-2">
+                                            <span class="fw-semibold small">{{ item.product.name }}</span>
+                                            <span class="small text-nowrap">{{ item.subtotal|money }}</span>
+                                        </div>
+                                        <span class="d-block small text-muted">{{ item.product.price|money }} × {{ item.quantity }}</span>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+
+                        <div class="d-flex justify-content-between mb-3">
+                            <span class="text-muted">Subtotal</span>
+                            <span class="fw-semibold">{{ subtotal|money }}</span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="text-muted">Coupon{% if coupon %} ({{ coupon.code }}){% endif %}</span>
+                            <span class="text-success">−{{ coupon_discount|money }}</span>
+                        </div>
+                        {% if not coupon %}
+                            <p class="small text-muted mb-3"><a href="{% url 'cart' %}" class="text-decoration-none">Apply a coupon in the cart</a></p>
+                        {% endif %}
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="text-muted">Shipping</span>
+                            {% if shipping_charge %}
+                                <span class="fw-semibold">{{ shipping_charge|money }}</span>
+                            {% else %}
+                                <span class="text-success fw-semibold">Free</span>
+                            {% endif %}
+                        </div>
+                        <div class="d-flex justify-content-between mb-3">
+                            <span class="text-muted">Tax</span>
+                            <span class="fw-semibold">{{ tax_amount|money }}</span>
+                        </div>
+                        <div class="d-flex justify-content-between border-top pt-3 mt-3">
+                            <span class="h5 mb-0">Final payable</span>
+                            <span class="h5 mb-0 text-primary">{{ cart_total|money }}</span>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary btn-lg rounded-pill w-100 py-3 mt-4" id="placeOrderButton">
+                            <i class="fas fa-lock me-2"></i>Place order
+                        </button>
+                        <p class="small text-muted mt-3 mb-0">
+                            <i class="fas fa-shield-alt me-1"></i>Your order totals and coupon are verified on the server. Payment success is never accepted from the browser alone.
+                        </p>
+
+                        {% if store_profile %}
+                            <div class="border-top mt-4 pt-3 small text-muted">
+                                <strong class="d-block text-dark mb-1">{{ store_profile.business_name }}</strong>
+                                {% if store_profile.email %}<span class="d-block">{{ store_profile.email }}</span>{% endif %}
+                                {% if store_profile.contact_number %}<span class="d-block">{{ store_profile.contact_number }}</span>{% endif %}
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+(function () {
+    var savedAddress = document.getElementById('savedAddress');
+    var newAddressFields = document.getElementById('new-address-fields');
+    var form = document.getElementById('checkoutForm');
+    var submitButton = document.getElementById('placeOrderButton');
+
+    function toggleAddressFields() {
+        if (!savedAddress || !newAddressFields) {
+            return;
+        }
+        newAddressFields.style.display = savedAddress.value ? 'none' : '';
+    }
+
+    if (savedAddress) {
+        savedAddress.addEventListener('change', toggleAddressFields);
+        toggleAddressFields();
+    }
+
+    if (form && submitButton) {
+        form.addEventListener('submit', function () {
+            submitButton.disabled = true;
+            submitButton.innerHTML = '<span class="spinner-border spinner-border-sm me-2" aria-hidden="true"></span>Placing order…';
+        });
+    }
+})();
+</script>
+{% endblock %}

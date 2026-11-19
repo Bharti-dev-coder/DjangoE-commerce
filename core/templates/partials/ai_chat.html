@@ -1,0 +1,90 @@
+{% load static %}
+<section
+    class="ai-chat"
+    data-ai-chat
+    data-chat-url="{% url 'ai_chat' %}"
+    data-cart-url="{% url 'cart' %}"
+    data-signin-url="{% url 'user_login' %}?next={% url 'cart' %}"
+    data-model-name="{{ ai_model_name|default:'' }}"
+    data-ai-enabled="{{ ai_enabled|yesno:'true,false' }}"
+    data-authenticated="{{ user.is_authenticated|yesno:'true,false' }}"
+    aria-label="EuphoriaDJ AI shopping assistant"
+>
+    <button
+        type="button"
+        class="ai-chat-toggle"
+        data-ai-toggle
+        aria-expanded="false"
+        aria-controls="ai-chat-panel"
+    >
+        <span class="ai-chat-toggle-icon"><i class="fas fa-comments" aria-hidden="true"></i></span>
+        <span class="ai-chat-toggle-text">Ask Euphoria</span>
+        <span class="ai-chat-toggle-badge">AI</span>
+    </button>
+
+    <div
+        class="ai-chat-panel"
+        id="ai-chat-panel"
+        data-ai-panel
+        role="dialog"
+        aria-modal="false"
+        aria-labelledby="ai-chat-title"
+        hidden
+    >
+        <header class="ai-chat-header">
+            <div class="ai-chat-identity">
+                <span class="ai-chat-avatar" aria-hidden="true"><i class="fas fa-comments"></i></span>
+                <div>
+                    <h2 id="ai-chat-title">Euphoria assistant</h2>
+                    <p class="ai-chat-status" data-ai-status>
+                        <span class="ai-chat-status-dot" aria-hidden="true"></span>
+                        <span data-ai-status-text>Local AI · catalog-grounded</span>
+                    </p>
+                </div>
+            </div>
+            <button type="button" class="ai-chat-close" data-ai-close aria-label="Close assistant">
+                <i class="fas fa-times" aria-hidden="true"></i>
+            </button>
+        </header>
+
+        <div class="ai-chat-messages" data-ai-messages role="log" aria-live="polite" aria-relevant="additions">
+            <div class="ai-chat-message ai-chat-message-assistant">
+                <div class="ai-chat-bubble">
+                    Hi! I can search the live catalog, recommend products, add something to your cart,
+                    or help with an order. What are you shopping for?
+                </div>
+            </div>
+        </div>
+
+        <div class="ai-chat-suggestions" data-ai-suggestions aria-label="Suggested questions">
+            <button type="button" class="ai-chat-chip" data-ai-prompt="Find wireless earbuds under a budget">Wireless earbuds</button>
+            <button type="button" class="ai-chat-chip" data-ai-prompt="Recommend a laptop for study">Laptop for study</button>
+            <button type="button" class="ai-chat-chip" data-ai-prompt="What are the shipping charges?">Shipping charges</button>
+            <button type="button" class="ai-chat-chip" data-ai-prompt="Where is my order?">My order</button>
+        </div>
+
+        <form class="ai-chat-form" data-ai-form>
+            {% csrf_token %}
+            <label for="ai-chat-input" class="visually-hidden">Message the shopping assistant</label>
+            <textarea
+                id="ai-chat-input"
+                class="ai-chat-input"
+                data-ai-input
+                name="message"
+                rows="1"
+                maxlength="800"
+                placeholder="Ask about products, your cart, or an order…"
+                autocomplete="off"
+                required
+            ></textarea>
+            <button type="submit" class="ai-chat-send" data-ai-send aria-label="Send message">
+                <i class="fas fa-paper-plane" aria-hidden="true"></i>
+            </button>
+        </form>
+
+        <p class="ai-chat-footnote">
+            <i class="fas fa-lock" aria-hidden="true"></i>
+            Local model; product facts come from the store database. Order details only appear for the signed-in customer.
+        </p>
+    </div>
+</section>
