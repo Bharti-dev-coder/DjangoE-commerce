@@ -36,6 +36,10 @@
     }
 
     function scrollMessages() {
+        // Set immediately so the latest reply is visible even in a background
+        // tab where requestAnimationFrame callbacks may be paused, then repeat
+        // after layout/images settle.
+        messages.scrollTop = messages.scrollHeight;
         window.requestAnimationFrame(function () {
             messages.scrollTop = messages.scrollHeight;
         });
@@ -139,7 +143,8 @@
             typing.appendChild(document.createElement('span'));
         }
         bubble.appendChild(typing);
-        return content;
+        // Return the whole row so removing the indicator leaves no empty gap.
+        return content.closest('.ai-chat-message');
     }
 
     function renderLinks(content, links) {
@@ -186,12 +191,31 @@
         card.querySelector('.ai-chat-product-body').appendChild(status);
     }
 
+    function updateProductCartLabel(card, quantity) {
+        var label = card.querySelector('.ai-chat-in-cart');
+        if (!quantity) {
+            if (label) {
+                label.remove();
+            }
+            return;
+        }
+        if (!label) {
+            label = document.createElement('span');
+            label.className = 'ai-chat-product-meta ai-chat-in-cart';
+            card.querySelector('.ai-chat-product-actions').appendChild(label);
+        }
+        label.textContent = 'In cart ×' + quantity;
+    }
+
     function updateCartCounts(count) {
         if (typeof count !== 'number') {
             return;
         }
-        document.querySelectorAll('[data-cart-count-badge], [data-cart-count-label], [data-cart-count-top-value]').forEach(function (node) {
+        document.querySelectorAll('[data-cart-count-badge], [data-cart-count-label]').forEach(function (node) {
             node.textContent = String(count);
+        });
+        document.querySelectorAll('[data-cart-count-top-label]').forEach(function (node) {
+            node.textContent = count + ' in cart';
         });
     }
 
@@ -230,13 +254,14 @@
                 throw new Error(data.error || 'Could not add this product.');
             }
             updateCartCounts(data.cart_count);
+            updateProductCartLabel(card, data.product && data.product.in_cart_quantity);
             if (data.capped) {
                 button.textContent = 'Max in cart';
                 button.disabled = true;
             } else {
                 button.textContent = 'Added';
                 window.setTimeout(function () {
-                    button.textContent = original;
+                    button.textContent = 'Add one more';
                     button.disabled = false;
                 }, 1400);
             }
@@ -260,6 +285,7 @@
         image.addEventListener('error', function () {
             image.src = '/static/theme/img/product-1.png';
         }, { once: true });
+        image.addEventListener('load', scrollMessages, { once: true });
         card.appendChild(image);
 
         var body = document.createElement('div');
@@ -324,7 +350,7 @@
 
         if (product.in_cart_quantity) {
             var inCart = document.createElement('span');
-            inCart.className = 'ai-chat-product-meta';
+            inCart.className = 'ai-chat-product-meta ai-chat-in-cart';
             inCart.textContent = 'In cart ×' + product.in_cart_quantity;
             actions.appendChild(inCart);
         }

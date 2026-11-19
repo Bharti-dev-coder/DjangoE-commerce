@@ -256,6 +256,7 @@ def search_products(plan, *, limit=None):
 
     min_price = plan.get('min_price')
     max_price = plan.get('max_price')
+    has_filters = bool(category) or min_price is not None or max_price is not None
     if min_price is not None:
         products = products.filter(price__gte=min_price)
     if max_price is not None:
@@ -290,9 +291,14 @@ def search_products(plan, *, limit=None):
             used_expanded_terms = True
 
     if not candidates:
-        # With a category or price filter, still show valid catalog options.
-        candidates = list(products.order_by('-created_at')[:limit * 4])
-        used_term_query = False
+        if not terms or has_filters:
+            # With a category or price filter, still show valid catalog options.
+            candidates = list(products.order_by('-created_at')[:limit * 4])
+            used_term_query = False
+        else:
+            # A query with no matches and no useful fallback filter should not
+            # return unrelated products just because the catalog is non-empty.
+            return []
 
     # A query such as "wireless earbuds" should not return every wireless
     # accessory. When the literal query produced matches, prefer products that
@@ -574,7 +580,7 @@ def _shipping_reply():
         'suggestions': [
             'How do I track my order?',
             'What payment methods are available?',
-            'Show me products under a budget',
+            'Show me products under 500',
         ],
     }
 
@@ -742,7 +748,7 @@ def _website_reply():
             _link('Contact support', reverse('contact_page'), 'fas fa-headset'),
         ],
         'suggestions': [
-            'Find wireless earbuds under a budget',
+            'Find wireless earbuds under 300',
             'Recommend a laptop for study',
             'What are the shipping charges?',
         ],
@@ -761,7 +767,7 @@ def _capabilities_reply():
             _link('My orders', reverse('order_list'), 'fas fa-box'),
         ],
         'suggestions': [
-            'Find wireless earbuds under a budget',
+            'Find wireless earbuds under 300',
             'Recommend a laptop for study',
             'Where is my order?',
             'What are the shipping charges?',
@@ -789,7 +795,7 @@ def _handle_search(request, plan):
             'links': [_link('Browse all products', reverse('shop_page'), 'fas fa-store')],
             'suggestions': [
                 'Show me all laptops',
-                'Find headphones under a budget',
+                'Find headphones under 2000',
                 'What are the shipping charges?',
             ],
         }
@@ -813,8 +819,8 @@ def _handle_search(request, plan):
     if request.user.is_authenticated:
         suggestions.append('Add the first one to my cart')
     suggestions.extend([
-        'Show me more options',
         'Recommend something similar',
+        'Show me all laptops',
         'What are the shipping charges?',
     ])
     return {
@@ -828,16 +834,83 @@ def _handle_search(request, plan):
 
 
 def _handle_recommendation(request, plan):
+    limit = int(getattr(settings, 'AI_RECOMMENDATION_LIMIT', 4))
+    specific_plan = {
+        'category': plan.get('category') or '',
+        'search_terms': [
+            term for term in (plan.get('search_terms') or [])
+            if str(term).strip()
+        ],
+        'min_price': plan.get('min_price'),
+        'max_price': plan.get('max_price'),
+    }
+    has_specific_request = bool(
+        specific_plan['category']
+        or specific_plan['search_terms']
+        or specific_plan['min_price'] is not None
+        or specific_plan['max_price'] is not None
+    )
+
+    if has_specific_request:
+        products = search_products(specific_plan, limit=limit)
+        if products:
+            record_chat_products(request, products)
+            quantities = _cart_quantities(request.user)
+            payloads = [
+                product_payload(
+                    product,
+                    request,
+                    reason='Matches your request.',
+                    cart_quantities=quantities,
+                )
+                for product in products
+            ]
+            filters = []
+            if specific_plan['category']:
+                filters.append(f'in {specific_plan["category"]}')
+            if specific_plan['max_price'] is not None:
+                filters.append(f'under {format_money(specific_plan["max_price"])}')
+            if (
+                specific_plan['min_price'] is not None
+                and specific_plan['max_price'] is None
+            ):
+                filters.append(f'from {format_money(specific_plan["min_price"])}')
+            suffix = f' {", ".join(filters)}' if filters else ''
+            suggestions = ['Recommend something similar', 'What are the shipping charges?']
+            if request.user.is_authenticated:
+                suggestions.insert(0, 'Add the first one to my cart')
+            return {
+                'reply': (
+                    f'Here are a few catalog picks{suffix} matching your request. '
+                    'Prices and availability come from the store database.'
+                ),
+                'products': payloads,
+                'links': [_link('Browse all products', reverse('shop_page'), 'fas fa-store')],
+                'suggestions': suggestions,
+            }
+        return {
+            'reply': (
+                'I could not find a product matching that recommendation in the '
+                'current catalog. Try a broader category or a higher budget.'
+            ),
+            'links': [_link('Browse the shop', reverse('shop_page'), 'fas fa-store')],
+            'suggestions': [
+                'Show me all laptops',
+                'Find headphones under 2000',
+                'What are the shipping charges?',
+            ],
+        }
+
     recommendations = get_recommendations(
         request.user,
         request.session,
-        limit=int(getattr(settings, 'AI_RECOMMENDATION_LIMIT', 4)),
+        limit=limit,
     )
     if not recommendations:
         return {
             'reply': 'I could not build a recommendation from the current catalog. Try browsing the shop first.',
             'links': [_link('Browse the shop', reverse('shop_page'), 'fas fa-store')],
-            'suggestions': ['Show me all products', 'What are the shipping charges?'],
+            'suggestions': ['Show me all laptops', 'What are the shipping charges?'],
         }
     products = [item.product for item in recommendations]
     record_chat_products(request, products)
@@ -868,8 +941,8 @@ def _handle_recommendation(request, plan):
         'links': [_link('Browse all products', reverse('shop_page'), 'fas fa-store')],
         'suggestions': [
             'Add the first one to my cart',
-            'Show me products under a budget',
             'What are the shipping charges?',
+            'Show me all laptops',
         ],
     }
 
@@ -932,7 +1005,7 @@ def _handle_add(request, plan):
     if quantity < 1 or quantity > 5:
         return {
             'reply': 'I can add between 1 and 5 of a product at a time. Please choose a quantity from 1 to 5.',
-            'suggestions': ['Add one to my cart', 'Show me products'],
+            'suggestions': ['Add one to my cart', 'Show me all laptops'],
         }
 
     candidates, recent_reference = _resolve_add_candidates(request, plan)
@@ -978,7 +1051,7 @@ def _handle_add(request, plan):
                 'Use the Add to cart button on a product below.'
             ),
             'products': payloads,
-            'suggestions': ['Add the first one to my cart', 'Show me more options'],
+            'suggestions': ['Add the first one to my cart', 'Find wireless earbuds'],
         }
 
     product = candidates[0]
@@ -1017,9 +1090,9 @@ def _handle_add(request, plan):
             'capped': result.capped,
         },
         'suggestions': [
-            'View my cart',
             'Recommend something similar',
             'What are the shipping charges?',
+            'Show me all laptops',
         ],
     }
 
@@ -1066,7 +1139,7 @@ def _base_response():
         'order': None,
         'action': None,
         'suggestions': [
-            'Find wireless earbuds under a budget',
+            'Find wireless earbuds under 300',
             'Recommend a laptop for study',
             'Where is my order?',
             'What are the shipping charges?',

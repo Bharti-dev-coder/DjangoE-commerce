@@ -15,7 +15,7 @@
     <link rel="stylesheet" href="{% static 'theme/css/bootstrap.min.css' %}">
     <link rel="stylesheet" href="{% static 'theme/css/style.css' %}">
     <link rel="stylesheet" href="{% static 'theme/css/store.css' %}">
-    <link rel="stylesheet" href="{% static 'theme/css/ai_chat.css' %}">
+    <link rel="stylesheet" href="{% static 'theme/css/ai_chat.css' %}?v=4">
     {% block extra_head %}{% endblock %}
 </head>
 <body>
@@ -33,7 +33,7 @@
                         <span class="text-muted me-3">Signed in as <strong class="text-dark">{{ user.first_name|default:user.username }}</strong></span>
                         <a href="{% url 'order_list' %}" class="text-muted me-3"><i class="fas fa-box me-1"></i>My orders</a>
                         <a href="{% url 'favorites' %}" class="text-muted me-3"><i class="fas fa-heart me-1"></i>{{ favorite_count }} favorites</a>
-                        <a href="{% url 'cart' %}" class="text-muted" data-cart-count-top><i class="fas fa-shopping-cart me-1"></i><span data-cart-count-top-value>{{ cart_count }}</span> in cart</a>
+                        <a href="{% url 'cart' %}" class="text-muted" data-cart-count-top><i class="fas fa-shopping-cart me-1"></i><span data-cart-count-top-label>{{ cart_count }} in cart</span></a>
                     {% else %}
                         <span class="text-muted me-3">Save favorites and keep a cart with an account.</span>
                         <a href="{% url 'user_login' %}?next={{ request.path|urlencode }}" class="text-muted me-3">Sign in</a>
@@ -284,7 +284,7 @@
     <script src="{% static 'theme/lib/owlcarousel/owl.carousel.min.js' %}"></script>
     <script src="{% static 'theme/lib/lightbox/js/lightbox.min.js' %}"></script>
     <script src="{% static 'theme/js/main.js' %}"></script>
-    <script src="{% static 'theme/js/ai_chat.js' %}"></script>
+    <script src="{% static 'theme/js/ai_chat.js' %}?v=4"></script>
     {% block extra_scripts %}{% endblock %}
 </body>
 </html>

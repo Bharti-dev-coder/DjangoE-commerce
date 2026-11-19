@@ -11,26 +11,79 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
 import os
+import urllib.parse
 from decimal import Decimal
 from pathlib import Path
+
 from dotenv import load_dotenv
+
 load_dotenv()
+
 from django.contrib.messages import constants as messages
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
+def _env_bool(name, default=False):
+    raw = os.getenv(name)
+    if raw is None or not raw.strip():
+        return default
+    return raw.strip().lower() in {'1', 'true', 'yes', 'on'}
+
+
+def _env_list(name, default=''):
+    raw = os.getenv(name, default)
+    return [item.strip() for item in raw.split(',') if item.strip()]
+
+
+# Vercel's Python image does not include the C MySQL headers needed by
+# mysqlclient. PyMySQL is a pure-Python fallback for deployments that still
+# choose MySQL. Local Windows installs continue to use mysqlclient when present.
+try:
+    import MySQLdb  # noqa: F401
+except ImportError:
+    try:
+        import pymysql
+
+        # Django checks the driver version at backend import time. PyMySQL
+        # implements the MySQLdb API but reports its own lower version. These
+        # values satisfy the backend's compatibility gate.
+        pymysql.version_info = (2, 2, 1, 'final', 0)
+        pymysql.__version__ = '2.2.1'
+        pymysql.install_as_MySQLdb()
+    except ImportError:
+        pass
+
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-=)(!_0o50w2vi#zkoa%vfd_w&4g(2zo9c6_px&swqaje9iql&j'
+SECRET_KEY = os.getenv(
+    'SECRET_KEY',
+    'django-insecure-local-development-only-change-this-in-production',
+)
 
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+# Local development defaults to debug. Vercel builds and deployments default
+# to production mode unless DEBUG is explicitly set.
+DEBUG = _env_bool('DEBUG', not bool(os.getenv('VERCEL')))
 
-ALLOWED_HOSTS = ['localhost', '127.0.0.1', 'testserver']
+ALLOWED_HOSTS = _env_list('ALLOWED_HOSTS', 'localhost,127.0.0.1,testserver')
+_vercel_hosts = []
+for _vercel_var in ('VERCEL_URL', 'VERCEL_PROJECT_PRODUCTION_URL'):
+    _host = (os.getenv(_vercel_var) or '').strip()
+    _host = _host.removeprefix('https://').removeprefix('http://').strip('/')
+    if _host and _host not in _vercel_hosts:
+        _vercel_hosts.append(_host)
+for _host in _vercel_hosts:
+    if _host not in ALLOWED_HOSTS:
+        ALLOWED_HOSTS.append(_host)
+
+CSRF_TRUSTED_ORIGINS = _env_list('CSRF_TRUSTED_ORIGINS')
+for _host in _vercel_hosts:
+    _origin = f'https://{_host}'
+    if _origin not in CSRF_TRUSTED_ORIGINS:
+        CSRF_TRUSTED_ORIGINS.append(_origin)
+
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
 
 # Application definition
@@ -79,16 +132,92 @@ WSGI_APPLICATION = 'EuphoriaDJ.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
-DATABASES =  {
-    'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'python73_75',
-        'USER': 'root',
-        'PASSWORD': 'Bh@ituu321',
-        'HOST': 'localhost',      # Or your database server IP
-        'PORT': '3306',           # Default MySQL port
+def _database_from_url(database_url):
+    """Map a hosted database URL (Postgres, MySQL, or SQLite) to Django."""
+    parsed = urllib.parse.urlparse(database_url)
+    scheme = parsed.scheme.lower().split('+', 1)[0]
+    if scheme in {'postgres', 'postgresql'}:
+        engine = 'django.db.backends.postgresql'
+    elif scheme == 'mysql':
+        engine = 'django.db.backends.mysql'
+    elif scheme in {'sqlite', 'sqlite3'}:
+        path = urllib.parse.unquote(parsed.path)
+        name = path[1:] if path.startswith('//') else path.lstrip('/')
+        return {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': name or ':memory:',
+        }
+    else:
+        raise ValueError(
+            'DATABASE_URL must use postgresql://, mysql://, or sqlite://'
+        )
+
+    # Hosted providers add URL parameters such as sslmode; ignore parameters
+    # that psycopg/PyMySQL do not understand (for example Prisma's pgbouncer).
+    allowed_options = {
+        'application_name',
+        'channel_binding',
+        'connect_timeout',
+        'options',
+        'sslcert',
+        'sslkey',
+        'sslmode',
+        'sslrootcert',
     }
-}
+    options = {
+        key: values[-1]
+        for key, values in urllib.parse.parse_qs(parsed.query).items()
+        if key in allowed_options
+    }
+    config = {
+        'ENGINE': engine,
+        'NAME': urllib.parse.unquote(parsed.path.lstrip('/')),
+        'USER': urllib.parse.unquote(parsed.username or ''),
+        'PASSWORD': urllib.parse.unquote(parsed.password or ''),
+        'HOST': parsed.hostname or '',
+        'PORT': str(parsed.port or ''),
+        'CONN_MAX_AGE': int(os.getenv('DB_CONN_MAX_AGE', '0') or 0),
+    }
+    if options:
+        config['OPTIONS'] = options
+    return config
+
+
+_database_url = os.getenv('DATABASE_URL', '').strip()
+if _database_url:
+    DATABASES = {'default': _database_from_url(_database_url)}
+else:
+    _db_engine = os.getenv('DB_ENGINE', '').strip()
+    if _db_engine:
+        _db_name = os.getenv('DB_NAME', '').strip()
+        if _db_engine == 'django.db.backends.sqlite3':
+            DATABASES = {
+                'default': {
+                    'ENGINE': _db_engine,
+                    'NAME': _db_name or BASE_DIR / 'db.sqlite3',
+                }
+            }
+        else:
+            DATABASES = {
+                'default': {
+                    'ENGINE': _db_engine,
+                    'NAME': _db_name,
+                    'USER': os.getenv('DB_USER', '').strip(),
+                    'PASSWORD': os.getenv('DB_PASSWORD', ''),
+                    'HOST': os.getenv('DB_HOST', '').strip(),
+                    'PORT': str(os.getenv('DB_PORT', '') or ''),
+                    'CONN_MAX_AGE': int(os.getenv('DB_CONN_MAX_AGE', '0') or 0),
+                }
+            }
+    else:
+        # Portable fallback for local scripts and Vercel's collectstatic step.
+        # Production deployments should provide DATABASE_URL (or DB_* values).
+        DATABASES = {
+            'default': {
+                'ENGINE': 'django.db.backends.sqlite3',
+                'NAME': BASE_DIR / 'db.sqlite3',
+            }
+        }
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
 
@@ -177,9 +306,9 @@ RAZORPAY_TIMEOUT = int(os.getenv('RAZORPAY_TIMEOUT', '20'))
 # Local AI shopping assistant. Ollama runs on this machine; no cloud API key
 # or paid service is involved. The language model only interprets messages.
 # Product, cart, and order facts always come from Django/database records.
-OLLAMA_ENABLED = os.getenv('OLLAMA_ENABLED', 'true').strip().lower() in {
-    '1', 'true', 'yes', 'on',
-}
+# Vercel cannot reach the customer's local Ollama daemon, so the assistant uses
+# its catalog-grounded fallback there unless a reachable endpoint is configured.
+OLLAMA_ENABLED = _env_bool('OLLAMA_ENABLED', not bool(os.getenv('VERCEL')))
 OLLAMA_BASE_URL = os.getenv('OLLAMA_BASE_URL', 'http://127.0.0.1:11434').rstrip('/')
 OLLAMA_MODEL = os.getenv('OLLAMA_MODEL', 'qwen2.5:1.5b').strip()
 OLLAMA_TIMEOUT = int(os.getenv('OLLAMA_TIMEOUT', '60'))

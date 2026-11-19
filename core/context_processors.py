@@ -30,8 +30,12 @@ def storefront(request):
         'store_profile': StoreProfile.objects.first(),
         'razorpay_enabled': bool(settings.RAZORPAY_KEY_ID and settings.RAZORPAY_KEY_SECRET),
         'ai_model_name': getattr(settings, 'OLLAMA_MODEL', ''),
+        'ai_chat_max_message_length': int(
+            getattr(settings, 'AI_CHAT_MAX_MESSAGE_LENGTH', 800)
+        ),
         'ai_enabled': bool(
             getattr(settings, 'OLLAMA_ENABLED', False)
             and getattr(settings, 'OLLAMA_BASE_URL', '')
+            and getattr(settings, 'OLLAMA_MODEL', '')
         ),
     }

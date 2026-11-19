@@ -57,7 +57,7 @@
         </div>
 
         <div class="ai-chat-suggestions" data-ai-suggestions aria-label="Suggested questions">
-            <button type="button" class="ai-chat-chip" data-ai-prompt="Find wireless earbuds under a budget">Wireless earbuds</button>
+            <button type="button" class="ai-chat-chip" data-ai-prompt="Find wireless earbuds under 300">Wireless earbuds</button>
             <button type="button" class="ai-chat-chip" data-ai-prompt="Recommend a laptop for study">Laptop for study</button>
             <button type="button" class="ai-chat-chip" data-ai-prompt="What are the shipping charges?">Shipping charges</button>
             <button type="button" class="ai-chat-chip" data-ai-prompt="Where is my order?">My order</button>
@@ -72,7 +72,7 @@
                 data-ai-input
                 name="message"
                 rows="1"
-                maxlength="800"
+                maxlength="{{ ai_chat_max_message_length }}"
                 placeholder="Ask about products, your cart, or an order…"
                 autocomplete="off"
                 required

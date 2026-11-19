@@ -93,7 +93,9 @@ STOPWORDS = {
     'bag', 'add', 'added', 'put', 'place', 'purchase', 'order', 'find',
     'browse', 'available', 'availability', 'stock', 'cost', 'much', 'how',
     'where', 'when', 'why', 'who', 'looking', 'need', 'thanks', 'thank',
-    'first', 'last', 'same', 'one',
+    'first', 'last', 'same', 'one', 'above', 'below', 'between', 'budget',
+    'inr', 'less', 'maximum', 'minimum', 'more', 'options', 'over', 'related',
+    'rs', 'similar', 'within',
 }
 
 SUPPORT_KEYWORDS = {
@@ -508,14 +510,43 @@ def _merge_plans(fallback, llm):
     if llm['intent'] in ALLOWED_INTENTS:
         plan['intent'] = llm['intent']
 
+    # A concrete product request with explicit terms or filters is safer handled
+    # as a catalog search, even if the model labels it as a greeting or general
+    # help. Recommendations are detected earlier by the deterministic parser.
+    if fallback['intent'] == 'product_search' and (
+        fallback['search_terms']
+        or fallback['category']
+        or fallback['min_price'] is not None
+        or fallback['max_price'] is not None
+    ):
+        plan['intent'] = 'product_search'
+
     # Explicit cart actions and order numbers are safety-relevant; trust the
     # deterministic parser over a small model for these.
     if fallback['intent'] == 'add_to_cart':
         plan['intent'] = 'add_to_cart'
+    if llm['intent'] == 'add_to_cart' and fallback['intent'] != 'add_to_cart':
+        # Never let the model add an item unless the customer's own words
+        # matched an explicit add/buy action in the deterministic parser.
+        plan['intent'] = fallback['intent']
     if fallback['order_number']:
         plan['intent'] = 'order_status'
         plan['order_number'] = fallback['order_number']
         plan['support_topic'] = 'order_status'
+
+    # Policy, account, and order-help answers are deterministic and grounded in
+    # Django/settings. Do not let a small model turn one of these into a product
+    # search or greeting.
+    concrete_support_topics = {
+        'shipping', 'payment', 'returns', 'cancellation', 'account', 'cart',
+        'contact', 'order_status', 'website',
+    }
+    if (
+        fallback['intent'] == 'support'
+        and fallback['support_topic'] in concrete_support_topics
+    ):
+        plan['intent'] = 'support'
+        plan['support_topic'] = fallback['support_topic']
 
     # Merge search terms carefully. Small models often echo budget numbers or
     # words such as "under"; _coerce_terms already removes those.

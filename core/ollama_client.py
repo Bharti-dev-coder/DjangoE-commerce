@@ -50,7 +50,7 @@ def _request_chat(payload):
     try:
         with opener.open(request, timeout=getattr(settings, 'OLLAMA_TIMEOUT', 60)) as response:
             body = response.read().decode('utf-8')
-    except (urllib.error.URLError, TimeoutError, socket.timeout, OSError) as exc:
+    except (urllib.error.URLError, TimeoutError, socket.timeout, OSError, ValueError) as exc:
         logger.warning('Local Ollama request failed: %s', type(exc).__name__)
         raise OllamaError('The local AI model is unavailable.') from exc
 
@@ -60,7 +60,13 @@ def _request_chat(payload):
         logger.warning('Local Ollama returned invalid JSON.')
         raise OllamaError('The local AI model returned an invalid response.') from exc
 
-    content = (parsed.get('message') or {}).get('content') or ''
+    if not isinstance(parsed, dict):
+        logger.warning('Local Ollama returned a non-object JSON response.')
+        raise OllamaError('The local AI model returned an invalid response.')
+    message = parsed.get('message')
+    content = message.get('content') if isinstance(message, dict) else ''
+    if not isinstance(content, str):
+        content = ''
     content = content.strip()
     if not content:
         logger.warning('Local Ollama returned an empty message.')

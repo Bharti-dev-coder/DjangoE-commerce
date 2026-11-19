@@ -155,6 +155,14 @@ class AIChatAndSearchTests(AIBaseTestCase):
             self.assertEqual(product['price_display'], format_money(Decimal(product['price'])))
             self.assertFalse(product['can_add'])
 
+    def test_unknown_search_does_not_return_unrelated_products(self):
+        response = self.chat('find a quantum flux capacitor')
+        payload = response.json()
+
+        self.assertEqual(payload['intent'], 'product_search')
+        self.assertEqual(payload['products'], [])
+        self.assertIn('could not find', payload['reply'].lower())
+
     def test_llm_plan_is_validated_against_explicit_filters(self):
         fake_plan = {
             'intent': 'product_search',
@@ -174,6 +182,51 @@ class AIChatAndSearchTests(AIBaseTestCase):
         self.assertTrue(payload['ai_available'])
         names = [product['name'] for product in payload['products']]
         self.assertEqual(names, [self.earbuds.name])
+
+    def test_model_cannot_start_a_cart_action_without_an_explicit_request(self):
+        fake_plan = {
+            'intent': 'add_to_cart',
+            'search_terms': ['wireless', 'earbuds'],
+            'category': 'Audio',
+            'min_price': None,
+            'max_price': None,
+            'quantity': 1,
+            'product_name': self.earbuds.name,
+            'order_number': '',
+            'support_topic': 'other',
+        }
+        with patch('core.ai_planner.chat', return_value=json.dumps(fake_plan)):
+            response = self.chat('show me wireless earbuds', self.user)
+
+        payload = response.json()
+        self.assertEqual(payload['intent'], 'product_search')
+        self.assertFalse(CartItem.objects.filter(user=self.user).exists())
+        self.assertEqual(
+            [product['name'] for product in payload['products']],
+            [self.earbuds.name],
+        )
+
+    def test_model_cannot_downgrade_an_explicit_search_to_a_greeting(self):
+        fake_plan = {
+            'intent': 'greeting',
+            'search_terms': [],
+            'category': '',
+            'min_price': None,
+            'max_price': None,
+            'quantity': 1,
+            'product_name': '',
+            'order_number': '',
+            'support_topic': 'other',
+        }
+        with patch('core.ai_planner.chat', return_value=json.dumps(fake_plan)):
+            response = self.chat('find wireless earbuds under 200')
+
+        payload = response.json()
+        self.assertEqual(payload['intent'], 'product_search')
+        self.assertEqual(
+            [product['name'] for product in payload['products']],
+            [self.earbuds.name],
+        )
 
     def test_malformed_llm_response_uses_deterministic_fallback(self):
         with patch('core.ai_planner.chat', return_value='not valid JSON'):
@@ -456,6 +509,26 @@ class AISupportTests(AIBaseTestCase):
         self.assertIn(format_money(settings.STORE_SHIPPING_CHARGE), payload['reply'])
         self.assertIn(format_money(settings.STORE_FREE_SHIPPING_THRESHOLD), payload['reply'])
 
+    def test_model_cannot_turn_a_policy_question_into_product_search(self):
+        fake_plan = {
+            'intent': 'product_search',
+            'search_terms': ['shipping'],
+            'category': 'Audio',
+            'min_price': None,
+            'max_price': None,
+            'quantity': 1,
+            'product_name': '',
+            'order_number': '',
+            'support_topic': 'other',
+        }
+        with patch('core.ai_planner.chat', return_value=json.dumps(fake_plan)):
+            response = self.chat('what are the shipping charges?')
+
+        payload = response.json()
+        self.assertEqual(payload['intent'], 'support')
+        self.assertEqual(payload['products'], [])
+        self.assertIn(format_money(settings.STORE_SHIPPING_CHARGE), payload['reply'])
+
     def test_return_policy_is_not_invented(self):
         response = self.chat('what is your return policy?')
         payload = response.json()
@@ -523,3 +596,18 @@ class AIRecommendationTests(AIBaseTestCase):
         )
         self.assertEqual(len(recommendations), 4)
         self.assertTrue(all(item.product.available for item in recommendations))
+
+    def test_specific_recommendation_respects_category_and_budget(self):
+        response = self.chat('recommend a laptop for study under 1200', self.user)
+        payload = response.json()
+
+        self.assertEqual(payload['intent'], 'recommendation')
+        self.assertTrue(payload['products'])
+        self.assertTrue(
+            all(product['category'] == 'Laptops' for product in payload['products'])
+        )
+        self.assertTrue(
+            all(product['price_value'] <= 1200 for product in payload['products'])
+        )
+        self.assertIn('Laptops', payload['reply'])
+        self.assertIn('under', payload['reply'].lower())
