@@ -1,290 +1,244 @@
-{% load static %}
+{% load static store_tags %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="{% block meta_description %}EuphoriaDJ electronics storefront{% endblock %}">
-    <title>{% block title %}EuphoriaDJ Store{% endblock %}</title>
+    <meta name="description" content="{% block meta_description %}EuphoriaDJ — considered electronics for a quieter everyday.{% endblock %}">
+    <meta name="theme-color" content="#f4efe6">
+    <title>{% block title %}EuphoriaDJ{% endblock %}</title>
+    <link rel="icon" href="{% static 'theme/img/favicon.svg' %}" type="image/svg+xml">
 
-    <link rel="stylesheet" href="{% static 'theme/vendor/fonts/google-fonts.css' %}">
-    <link rel="stylesheet" href="{% static 'theme/vendor/bootstrap-icons/bootstrap-icons.css' %}">
-    <link rel="stylesheet" href="{% static 'theme/vendor/fontawesome/all.min.css' %}">
-    <link rel="stylesheet" href="{% static 'theme/lib/animate/animate.min.css' %}">
-    <link rel="stylesheet" href="{% static 'theme/lib/owlcarousel/assets/owl.carousel.min.css' %}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{% static 'theme/css/bootstrap.min.css' %}">
-    <link rel="stylesheet" href="{% static 'theme/css/style.css' %}">
-    <link rel="stylesheet" href="{% static 'theme/css/store.css' %}">
-    <link rel="stylesheet" href="{% static 'theme/css/ai_chat.css' %}?v=4">
+    <link rel="stylesheet" href="{% static 'theme/vendor/fontawesome/all.min.css' %}">
+    <link rel="stylesheet" href="{% static 'theme/css/store.css' %}?v=2">
+    <link rel="stylesheet" href="{% static 'theme/css/ai_chat.css' %}?v=6">
     {% block extra_head %}{% endblock %}
 </head>
-<body>
-    <div class="container-fluid px-3 px-lg-5 d-none border-bottom d-lg-block">
-        <div class="row gx-0 align-items-center">
-            <div class="col-lg-5">
-                <div class="d-inline-flex align-items-center text-muted small" style="height: 45px;">
-                    <span class="me-3"><i class="fas fa-truck text-primary me-2"></i>Curated electronics for everyday life</span>
-                    <a href="{% url 'contact_page' %}" class="text-muted">Contact us</a>
-                </div>
-            </div>
-            <div class="col-lg-7">
-                <div class="d-flex align-items-center justify-content-end small" style="height: 45px;">
-                    {% if user.is_authenticated %}
-                        <span class="text-muted me-3">Signed in as <strong class="text-dark">{{ user.first_name|default:user.username }}</strong></span>
-                        <a href="{% url 'order_list' %}" class="text-muted me-3"><i class="fas fa-box me-1"></i>My orders</a>
-                        <a href="{% url 'favorites' %}" class="text-muted me-3"><i class="fas fa-heart me-1"></i>{{ favorite_count }} favorites</a>
-                        <a href="{% url 'cart' %}" class="text-muted" data-cart-count-top><i class="fas fa-shopping-cart me-1"></i><span data-cart-count-top-label>{{ cart_count }} in cart</span></a>
-                    {% else %}
-                        <span class="text-muted me-3">Save favorites and keep a cart with an account.</span>
-                        <a href="{% url 'user_login' %}?next={{ request.path|urlencode }}" class="text-muted me-3">Sign in</a>
-                        <a href="{% url 'user_register' %}" class="text-muted">Create account</a>
-                    {% endif %}
-                </div>
+<body class="{% block body_class %}{% endblock %}">
+    <a class="skip-link" href="#main-content">Skip to content</a>
+
+    <div class="announcement-bar">
+        <div class="container announcement-bar__inner">
+            <p class="announcement-bar__message">Complimentary delivery on orders over {{ free_shipping_threshold|money }}</p>
+            <div class="announcement-bar__links">
+                <a href="{% url 'contact_page' %}">Client services</a>
+                <span class="announcement-bar__separator" aria-hidden="true"></span>
+                <a href="{% url 'service_page' %}">Our service</a>
             </div>
         </div>
     </div>
 
-    <header class="container-fluid px-3 px-lg-5 py-4">
-        <div class="row gx-0 align-items-center gy-3">
-            <div class="col-6 col-lg-3">
-                <a href="{% url 'home_page' %}" class="navbar-brand p-0 d-inline-flex align-items-center text-decoration-none">
-                    <span class="display-6 text-primary m-0 brand-wordmark">
-                        <i class="fas fa-shopping-bag text-secondary me-2"></i>Euphoria<span class="text-secondary">DJ</span>
-                    </span>
-                </a>
-            </div>
-            <div class="col-12 col-lg-6 order-3 order-lg-2">
-                <form method="get" action="{% url 'shop_page' %}" class="header-search">
-                    <div class="d-flex border rounded-pill overflow-hidden bg-white">
-                        <label for="header-search-input" class="visually-hidden">Search products</label>
-                        <input id="header-search-input" class="form-control border-0 rounded-pill w-100 py-3" type="search"
-                               name="q" value="{{ request.GET.q|default:'' }}" placeholder="Search products, categories, and more">
-                        <label for="header-category-select" class="visually-hidden">Category</label>
-                        <select id="header-category-select" class="form-select text-dark border-0 border-start rounded-0 p-3 d-none d-md-block"
-                                name="category" style="width: 190px;">
-                            <option value="">All categories</option>
-                            {% for category in nav_categories %}
-                                <option value="{{ category.id }}" {% if request.GET.category == category.id|stringformat:"s" %}selected{% endif %}>{{ category.name }}</option>
-                            {% endfor %}
-                        </select>
-                        <button type="submit" class="btn btn-primary rounded-pill py-3 px-4 px-lg-5 border-0" aria-label="Search">
-                            <i class="fas fa-search"></i>
-                        </button>
-                    </div>
-                </form>
-            </div>
-            <div class="col-6 col-lg-3 order-2 order-lg-3">
-                <div class="d-flex align-items-center justify-content-end gap-2">
-                    <a href="{% if user.is_authenticated %}{% url 'favorites' %}{% else %}{% url 'user_login' %}?next={% url 'favorites' %}{% endif %}"
-                       class="text-muted d-flex align-items-center justify-content-center quick-action position-relative"
-                       title="Favorites{% if user.is_authenticated %} ({{ favorite_count }}){% endif %}"
-                       aria-label="Favorites{% if user.is_authenticated %} ({{ favorite_count }}){% endif %}">
-                        <span class="rounded-circle btn-md-square border d-inline-flex align-items-center justify-content-center">
-                            <i class="fas fa-heart"></i>
-                        </span>
-                        {% if user.is_authenticated %}
-                            <span class="badge rounded-pill bg-primary quick-action-count d-xl-none" aria-hidden="true">{{ favorite_count }}</span>
-                            <span class="d-none d-xl-inline small ms-2">{{ favorite_count }}</span>
-                        {% endif %}
-                    </a>
-                    <a href="{% if user.is_authenticated %}{% url 'cart' %}{% else %}{% url 'user_login' %}?next={% url 'cart' %}{% endif %}"
-                       class="text-muted d-flex align-items-center justify-content-center quick-action position-relative" title="Cart{% if user.is_authenticated %} ({{ cart_count }}){% endif %}"
-                       aria-label="Cart{% if user.is_authenticated %} ({{ cart_count }}){% endif %}">
-                        <span class="rounded-circle btn-md-square border d-inline-flex align-items-center justify-content-center">
-                            <i class="fas fa-shopping-cart"></i>
-                        </span>
-                        {% if user.is_authenticated %}
-                            <span class="badge rounded-pill bg-primary quick-action-count d-xl-none" data-cart-count-badge aria-hidden="true">{{ cart_count }}</span>
-                            <span class="d-none d-xl-inline small ms-2" data-cart-count-label>{{ cart_count }}</span>
-                        {% endif %}
-                    </a>
-                    {% if user.is_authenticated %}
-                        <div class="dropdown">
-                            <button class="btn btn-outline-primary rounded-pill dropdown-toggle px-3" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                <i class="fas fa-user-circle me-1"></i><span class="d-none d-sm-inline">{{ user.first_name|default:user.username }}</span>
-                            </button>
-                            <ul class="dropdown-menu dropdown-menu-end">
-                                <li><a class="dropdown-item" href="{% url 'order_list' %}"><i class="fas fa-box me-2 text-primary"></i>My orders</a></li>
-                                <li><a class="dropdown-item" href="{% url 'favorites' %}"><i class="fas fa-heart me-2 text-primary"></i>Favorites</a></li>
-                                <li><a class="dropdown-item" href="{% url 'cart' %}"><i class="fas fa-shopping-cart me-2 text-primary"></i>Cart</a></li>
-                                <li><a class="dropdown-item" href="{% url 'get_all_employees' %}"><i class="fas fa-users me-2 text-primary"></i>Employee directory</a></li>
-                                <li><hr class="dropdown-divider"></li>
-                                <li><a class="dropdown-item" href="{% url 'user_logout' %}"><i class="fas fa-sign-out-alt me-2 text-primary"></i>Sign out</a></li>
-                            </ul>
+    <header class="site-header" data-site-header>
+        <div class="container site-header__inner">
+            <button type="button" class="menu-toggle" data-menu-toggle aria-controls="mobile-navigation" aria-expanded="false">
+                <span class="menu-toggle__lines" aria-hidden="true"><span></span><span></span></span>
+                <span class="visually-hidden">Open menu</span>
+            </button>
+
+            <a href="{% url 'home_page' %}" class="wordmark" aria-label="EuphoriaDJ home">
+                Euphoria<span>DJ</span>
+            </a>
+
+            <nav class="primary-nav" aria-label="Primary navigation">
+                <a href="{% url 'shop_page' %}" class="primary-nav__link {% if request.resolver_match.url_name == 'shop_page' or request.resolver_match.url_name == 'product_detail' %}is-active{% endif %}">Shop</a>
+                <details class="nav-disclosure">
+                    <summary class="primary-nav__link">Collections <i class="fas fa-chevron-down" aria-hidden="true"></i></summary>
+                    <div class="nav-disclosure__panel">
+                        <div class="nav-disclosure__intro">
+                            <span class="eyebrow">The edit</span>
+                            <p>Objects chosen for the way you live, work and listen.</p>
                         </div>
-                    {% else %}
-                        <a href="{% url 'user_login' %}?next={{ request.path|urlencode }}" class="btn btn-primary rounded-pill px-3 px-lg-4">Sign in</a>
+                        <div class="nav-disclosure__links">
+                            {% for category in nav_categories %}
+                                <a href="{% url 'shop_page' %}?category={{ category.id }}">
+                                    <span>{{ category.name }}</span>
+                                    <span>{{ category.product_count|stringformat:"02d" }}</span>
+                                </a>
+                            {% empty %}
+                                <span class="nav-disclosure__empty">Collections will appear here.</span>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </details>
+                <a href="{% url 'about_page' %}" class="primary-nav__link {% if request.resolver_match.url_name == 'about_page' %}is-active{% endif %}">Story</a>
+                <a href="{% url 'service_page' %}" class="primary-nav__link {% if request.resolver_match.url_name == 'service_page' %}is-active{% endif %}">Service</a>
+                <a href="{% url 'contact_page' %}" class="primary-nav__link {% if request.resolver_match.url_name == 'contact_page' %}is-active{% endif %}">Contact</a>
+            </nav>
+
+            <div class="header-actions">
+                <button type="button" class="icon-action" data-search-toggle aria-controls="site-search" aria-expanded="false">
+                    <i class="fas fa-search" aria-hidden="true"></i>
+                    <span class="visually-hidden">Search</span>
+                </button>
+
+                <a href="{% if user.is_authenticated %}{% url 'favorites' %}{% else %}{% url 'user_login' %}?next={% url 'favorites' %}{% endif %}" class="icon-action header-favorite" aria-label="Favorites{% if user.is_authenticated %} ({{ favorite_count }}){% endif %}">
+                    <i class="{% if favorite_count and user.is_authenticated %}fas{% else %}far{% endif %} fa-heart" aria-hidden="true"></i>
+                    {% if user.is_authenticated and favorite_count %}
+                        <span class="icon-action__count quick-action-count">{{ favorite_count }}</span>
+                        <span class="visually-hidden">{{ favorite_count }} in favorites</span>
                     {% endif %}
-                </div>
+                </a>
+
+                <a href="{% if user.is_authenticated %}{% url 'cart' %}{% else %}{% url 'user_login' %}?next={% url 'cart' %}{% endif %}" class="icon-action header-cart" aria-label="Cart{% if user.is_authenticated %} ({{ cart_count }}){% endif %}">
+                    <i class="fas fa-shopping-bag" aria-hidden="true"></i>
+                    {% if user.is_authenticated %}
+                        <span class="icon-action__count quick-action-count" data-cart-count-badge>{{ cart_count }}</span>
+                        <span class="visually-hidden">{{ cart_count }} in cart</span>
+                    {% endif %}
+                </a>
+
+                {% if user.is_authenticated %}
+                    <details class="account-menu">
+                        <summary class="account-menu__trigger">
+                            <i class="far fa-user" aria-hidden="true"></i>
+                            <span class="account-menu__name">{{ user.first_name|default:user.username }}</span>
+                            <i class="fas fa-chevron-down account-menu__chevron" aria-hidden="true"></i>
+                        </summary>
+                        <div class="account-menu__panel">
+                            <div class="account-menu__heading">
+                                <span class="eyebrow">Your account</span>
+                                <strong>{{ user.first_name|default:user.username }}</strong>
+                            </div>
+                            <a href="{% url 'order_list' %}"><span>Orders</span><i class="fas fa-arrow-right" aria-hidden="true"></i></a>
+                            <a href="{% url 'favorites' %}"><span>Favorites</span><span>{{ favorite_count }}</span></a>
+                            <a href="{% url 'cart' %}"><span>Bag</span><span>{{ cart_count }}</span></a>
+                            <a href="{% url 'get_all_employees' %}"><span>Employee directory</span><i class="fas fa-arrow-right" aria-hidden="true"></i></a>
+                            <a href="{% url 'user_logout' %}" class="account-menu__signout"><span>Sign out</span><i class="fas fa-arrow-right" aria-hidden="true"></i></a>
+                        </div>
+                    </details>
+                {% else %}
+                    <a href="{% url 'user_login' %}?next={{ request.path|urlencode }}" class="header-signin">Sign in</a>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="search-panel" id="site-search" data-search-panel hidden>
+            <div class="container">
+                <form method="get" action="{% url 'shop_page' %}" class="search-panel__form" role="search">
+                    <label for="header-search-input" class="search-panel__label">Search the collection</label>
+                    <div class="search-panel__field">
+                        <input id="header-search-input" type="search" name="q" value="{{ request.GET.q|default:'' }}" placeholder="Try “wireless”, “camera”, “laptop”…" autocomplete="off">
+                        <button type="submit" aria-label="Search products"><i class="fas fa-arrow-right" aria-hidden="true"></i></button>
+                    </div>
+                    <button type="button" class="search-panel__close" data-search-close aria-label="Close search">
+                        <i class="fas fa-times" aria-hidden="true"></i>
+                    </button>
+                </form>
             </div>
         </div>
     </header>
 
-    <div class="container-fluid nav-bar p-0">
-        <div class="row gx-0 bg-primary px-3 px-lg-5 align-items-center">
-            <div class="col-lg-3 d-none d-lg-block">
-                <nav class="navbar navbar-light position-relative w-100">
-                    <button class="navbar-toggler border-0 fs-5 w-100 px-0 text-start text-white" type="button"
-                            data-bs-toggle="collapse" data-bs-target="#allCategories" aria-expanded="false" aria-controls="allCategories">
-                        <span class="fw-bold"><i class="fa fa-bars me-2"></i>All categories</span>
-                    </button>
-                    <div class="collapse navbar-collapse rounded-bottom position-absolute w-100 bg-white shadow" id="allCategories" style="z-index: 1030;">
-                        <ul class="list-unstyled categories-bars mb-0 py-2">
-                            {% for category in nav_categories %}
-                                <li>
-                                    <div class="categories-bars-item">
-                                        <a href="{% url 'shop_page' %}?category={{ category.id }}">{{ category.name }}</a>
-                                        <span>({{ category.product_count }})</span>
-                                    </div>
-                                </li>
-                            {% empty %}
-                                <li class="px-3 py-2 text-muted small">Categories appear after catalog setup.</li>
-                            {% endfor %}
-                        </ul>
-                    </div>
-                </nav>
+    <div class="mobile-drawer" id="mobile-navigation" data-mobile-nav hidden>
+        <button type="button" class="mobile-drawer__backdrop" data-menu-close aria-label="Close menu"></button>
+        <aside class="mobile-drawer__panel" aria-label="Mobile navigation">
+            <div class="mobile-drawer__head">
+                <a href="{% url 'home_page' %}" class="wordmark wordmark--small">Euphoria<span>DJ</span></a>
+                <button type="button" class="drawer-close" data-menu-close aria-label="Close menu"><i class="fas fa-times" aria-hidden="true"></i></button>
             </div>
-            <div class="col-12 col-lg-9">
-                <nav class="navbar navbar-expand-lg navbar-light bg-primary">
-                    <a href="{% url 'home_page' %}" class="navbar-brand d-block d-lg-none text-white mb-0">
-                        <span class="fs-3 fw-bold"><i class="fas fa-shopping-bag text-secondary me-2"></i>EuphoriaDJ</span>
-                    </a>
-                    <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse"
-                            data-bs-target="#storefrontNavbar" aria-controls="storefrontNavbar" aria-expanded="false" aria-label="Toggle navigation">
-                        <span class="fa fa-bars text-white"></span>
-                    </button>
-                    <div class="collapse navbar-collapse" id="storefrontNavbar">
-                        <div class="navbar-nav ms-auto py-0 align-items-lg-center">
-                            <a href="{% url 'home_page' %}" class="nav-item nav-link {% if request.resolver_match.url_name == 'home_page' %}active{% endif %}">Home</a>
-                            <a href="{% url 'shop_page' %}" class="nav-item nav-link {% if request.resolver_match.url_name == 'shop_page' or request.resolver_match.url_name == 'product_detail' %}active{% endif %}">Shop</a>
-                            <div class="nav-item dropdown">
-                                <a href="{% url 'shop_page' %}" class="nav-link dropdown-toggle" id="categoryDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">Categories</a>
-                                <div class="dropdown-menu m-0" aria-labelledby="categoryDropdown">
-                                    {% for category in nav_categories %}
-                                        <a href="{% url 'shop_page' %}?category={{ category.id }}" class="dropdown-item">{{ category.name }} <span class="text-muted small">({{ category.product_count }})</span></a>
-                                    {% empty %}
-                                        <span class="dropdown-item-text text-muted small">No categories yet</span>
-                                    {% endfor %}
-                                </div>
-                            </div>
-                            <a href="{% url 'about_page' %}" class="nav-item nav-link {% if request.resolver_match.url_name == 'about_page' %}active{% endif %}">About</a>
-                            <a href="{% url 'contact_page' %}" class="nav-item nav-link {% if request.resolver_match.url_name == 'contact_page' %}active{% endif %}">Contact</a>
-                            {% if not user.is_authenticated %}
-                                <a href="{% url 'user_register' %}" class="nav-item nav-link">Register</a>
-                            {% endif %}
-                            <a href="{% url 'shop_page' %}" class="btn btn-secondary rounded-pill py-2 px-4 ms-lg-3 mb-3 mb-lg-0">
-                                <i class="fas fa-store me-2"></i>Shop now
-                            </a>
-                        </div>
-                    </div>
-                </nav>
+            <nav class="mobile-drawer__nav" aria-label="Mobile primary navigation">
+                <a href="{% url 'shop_page' %}">Shop all <i class="fas fa-arrow-right" aria-hidden="true"></i></a>
+                <a href="{% url 'about_page' %}">Our story <i class="fas fa-arrow-right" aria-hidden="true"></i></a>
+                <a href="{% url 'service_page' %}">Service <i class="fas fa-arrow-right" aria-hidden="true"></i></a>
+                <a href="{% url 'contact_page' %}">Contact <i class="fas fa-arrow-right" aria-hidden="true"></i></a>
+            </nav>
+            <div class="mobile-drawer__section">
+                <p class="eyebrow">Collections</p>
+                <div class="mobile-drawer__collections">
+                    {% for category in nav_categories %}
+                        <a href="{% url 'shop_page' %}?category={{ category.id }}"><span>{{ category.name }}</span><span>{{ category.product_count|stringformat:"02d" }}</span></a>
+                    {% empty %}
+                        <span class="text-muted small">Collections will appear here.</span>
+                    {% endfor %}
+                </div>
             </div>
-        </div>
+            <div class="mobile-drawer__section mobile-drawer__account">
+                {% if user.is_authenticated %}
+                    <p class="eyebrow">Your account</p>
+                    <a href="{% url 'order_list' %}">Orders</a>
+                    <a href="{% url 'favorites' %}">Favorites <span>{{ favorite_count }}</span></a>
+                    <a href="{% url 'cart' %}">Bag <span>{{ cart_count }}</span></a>
+                    <a href="{% url 'user_logout' %}">Sign out</a>
+                {% else %}
+                    <p class="eyebrow">Your account</p>
+                    <a href="{% url 'user_login' %}?next={{ request.path|urlencode }}">Sign in</a>
+                    <a href="{% url 'user_register' %}">Create an account</a>
+                {% endif %}
+            </div>
+            <p class="mobile-drawer__note"><i class="fas fa-lock" aria-hidden="true"></i> Secure checkout · Private favorites · Thoughtfully chosen</p>
+        </aside>
     </div>
 
     {% if messages %}
-        <div class="container-fluid px-3 px-lg-5 pt-3" aria-live="polite">
+        <div class="container message-stack" aria-live="polite">
             {% for message in messages %}
-                <div class="alert {{ message.tags }} alert-dismissible fade show shadow-sm" role="alert">
-                    {{ message }}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                <div class="alert {{ message.tags }} alert-dismissible fade show" role="alert">
+                    <span>{{ message }}</span>
+                    <button type="button" class="alert-close" data-alert-close aria-label="Close message"><i class="fas fa-times" aria-hidden="true"></i></button>
                 </div>
             {% endfor %}
         </div>
     {% endif %}
 
-    <main>
+    <main id="main-content">
         {% block content %}{% endblock %}
     </main>
 
-    <footer class="container-fluid footer py-5 mt-5">
-        <div class="container py-4">
-            <div class="row g-5">
-                <div class="col-lg-4">
-                    <a href="{% url 'home_page' %}" class="d-inline-flex align-items-center text-decoration-none mb-3">
-                        <span class="fs-2 fw-bold text-primary"><i class="fas fa-shopping-bag text-secondary me-2"></i>EuphoriaDJ</span>
-                    </a>
-                    <p class="text-white-50 mb-3">
-                        A focused electronics storefront built on the existing Django application. Browse the catalog,
-                        save favorites, and keep your cart tied securely to your account.
-                    </p>
-                    <p class="text-white-50 mb-0 small">
-                        <i class="fas fa-envelope text-primary me-2"></i>
-                        <a href="{% url 'contact_page' %}" class="text-white-50">Contact the store team</a>
-                    </p>
+    <footer class="site-footer">
+        <div class="container">
+            <div class="site-footer__top">
+                <div class="site-footer__brand">
+                    <a href="{% url 'home_page' %}" class="wordmark wordmark--light">Euphoria<span>DJ</span></a>
+                    <p>Considered electronics for a quieter everyday. Objects selected for usefulness, longevity and the pleasure of use.</p>
+                    <a href="{% url 'contact_page' %}" class="footer-email">{{ store_profile.email|default:"Client services" }} <i class="fas fa-arrow-right" aria-hidden="true"></i></a>
                 </div>
-                <div class="col-6 col-lg-2">
-                    <h4 class="text-primary mb-4">Shop</h4>
-                    <div class="footer-item d-flex flex-column">
-                        <a href="{% url 'shop_page' %}"><i class="fas fa-angle-right me-2"></i>All products</a>
-                        {% for category in nav_categories|slice:":5" %}
-                            <a href="{% url 'shop_page' %}?category={{ category.id }}"><i class="fas fa-angle-right me-2"></i>{{ category.name }}</a>
-                        {% endfor %}
-                    </div>
+                <div class="site-footer__column">
+                    <p class="footer-heading">Shop</p>
+                    <a href="{% url 'shop_page' %}">All objects</a>
+                    {% for category in nav_categories|slice:":5" %}
+                        <a href="{% url 'shop_page' %}?category={{ category.id }}">{{ category.name }}</a>
+                    {% endfor %}
                 </div>
-                <div class="col-6 col-lg-2">
-                    <h4 class="text-primary mb-4">Account</h4>
-                    <div class="footer-item d-flex flex-column">
-                        {% if user.is_authenticated %}
-                            <a href="{% url 'order_list' %}"><i class="fas fa-angle-right me-2"></i>My orders</a>
-                            <a href="{% url 'favorites' %}"><i class="fas fa-angle-right me-2"></i>Favorites</a>
-                            <a href="{% url 'cart' %}"><i class="fas fa-angle-right me-2"></i>Cart</a>
-                            <a href="{% url 'get_all_employees' %}"><i class="fas fa-angle-right me-2"></i>Employees</a>
-                            <a href="{% url 'user_logout' %}"><i class="fas fa-angle-right me-2"></i>Sign out</a>
-                        {% else %}
-                            <a href="{% url 'user_login' %}"><i class="fas fa-angle-right me-2"></i>Sign in</a>
-                            <a href="{% url 'user_register' %}"><i class="fas fa-angle-right me-2"></i>Create account</a>
-                            <a href="{% url 'favorites' %}"><i class="fas fa-angle-right me-2"></i>Favorites</a>
-                            <a href="{% url 'cart' %}"><i class="fas fa-angle-right me-2"></i>Cart</a>
-                        {% endif %}
-                    </div>
+                <div class="site-footer__column">
+                    <p class="footer-heading">House</p>
+                    <a href="{% url 'about_page' %}">Our story</a>
+                    <a href="{% url 'service_page' %}">Service &amp; care</a>
+                    <a href="{% url 'contact_page' %}">Contact</a>
                 </div>
-                <div class="col-lg-4">
-                    <h4 class="text-primary mb-4">Information</h4>
-                    <div class="footer-item d-flex flex-column">
-                        <a href="{% url 'about_page' %}"><i class="fas fa-angle-right me-2"></i>About EuphoriaDJ</a>
-                        <a href="{% url 'service_page' %}"><i class="fas fa-angle-right me-2"></i>Service information</a>
-                        <a href="{% url 'contact_page' %}"><i class="fas fa-angle-right me-2"></i>Contact and support</a>
-                    </div>
-                    <p class="text-white-50 small mt-4 mb-0">
-                        Product prices are stored in the database and shown in {{ currency_code }}. Checkout supports Cash on Delivery and verified Razorpay payments.
-                    </p>
+                <div class="site-footer__column">
+                    <p class="footer-heading">Account</p>
+                    {% if user.is_authenticated %}
+                        <a href="{% url 'order_list' %}">Orders</a>
+                        <a href="{% url 'favorites' %}">Favorites</a>
+                        <a href="{% url 'cart' %}">Bag</a>
+                        <a href="{% url 'user_logout' %}">Sign out</a>
+                    {% else %}
+                        <a href="{% url 'user_login' %}">Sign in</a>
+                        <a href="{% url 'user_register' %}">Create account</a>
+                        <a href="{% url 'favorites' %}">Favorites</a>
+                        <a href="{% url 'cart' %}">Bag</a>
+                    {% endif %}
                 </div>
+            </div>
+            <div class="site-footer__bottom">
+                <p>&copy; {% now "Y" %} EuphoriaDJ. All rights reserved.</p>
+                <p class="site-footer__payment"><i class="fas fa-shield-alt" aria-hidden="true"></i> Secure checkout · Cash on delivery &amp; Razorpay</p>
+                <p class="site-footer__credit">Theme foundation: Electro by <a href="https://htmlcodex.com" target="_blank" rel="noopener">HTML Codex</a> / <a href="https://themewagon.com" target="_blank" rel="noopener">ThemeWagon</a> · CC BY 4.0</p>
             </div>
         </div>
     </footer>
 
-    <div class="container-fluid copyright py-4">
-        <div class="container">
-            <div class="row g-3 align-items-center">
-                <div class="col-md-6 text-center text-md-start">
-                    <span class="text-white small"><i class="fas fa-copyright text-light me-2"></i>{% now "Y" %} EuphoriaDJ. All rights reserved.</span>
-                </div>
-                <div class="col-md-6 text-center text-md-end text-white small">
-                    Storefront theme: Electro by
-                    <a class="border-bottom text-white" href="https://htmlcodex.com" target="_blank" rel="noopener">HTML Codex</a>,
-                    distributed by
-                    <a class="border-bottom text-white" href="https://themewagon.com" target="_blank" rel="noopener">ThemeWagon</a>.
-                    Licensed under CC BY 4.0; attribution retained.
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <a href="#" class="btn btn-primary btn-lg-square back-to-top" aria-label="Back to top"><i class="fa fa-arrow-up"></i></a>
+    <button type="button" class="back-to-top" data-back-to-top hidden aria-label="Back to top">
+        <i class="fas fa-arrow-up" aria-hidden="true"></i>
+    </button>
 
     {% include "partials/ai_chat.html" %}
 
-    <script src="{% static 'theme/vendor/jquery-3.6.4.min.js' %}"></script>
-    <script src="{% static 'theme/vendor/bootstrap.bundle.min.js' %}"></script>
-    <script src="{% static 'theme/lib/wow/wow.min.js' %}"></script>
-    <script src="{% static 'theme/lib/easing/easing.min.js' %}"></script>
-    <script src="{% static 'theme/lib/waypoints/waypoints.min.js' %}"></script>
-    <script src="{% static 'theme/lib/counterup/counterup.min.js' %}"></script>
-    <script src="{% static 'theme/lib/owlcarousel/owl.carousel.min.js' %}"></script>
-    <script src="{% static 'theme/lib/lightbox/js/lightbox.min.js' %}"></script>
-    <script src="{% static 'theme/js/main.js' %}"></script>
-    <script src="{% static 'theme/js/ai_chat.js' %}?v=4"></script>
+    <script src="{% static 'theme/js/main.js' %}?v=2" defer></script>
+    <script src="{% static 'theme/js/ai_chat.js' %}?v=6" defer></script>
     {% block extra_scripts %}{% endblock %}
 </body>
 </html>

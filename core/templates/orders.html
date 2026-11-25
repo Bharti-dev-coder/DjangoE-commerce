@@ -1,77 +1,65 @@
 {% extends "app.html" %}
 {% load static store_tags %}
 
-{% block title %}My Orders | EuphoriaDJ{% endblock %}
-{% block meta_description %}View your EuphoriaDJ order history, payment status, and order details.{% endblock %}
+{% block title %}Your orders | EuphoriaDJ{% endblock %}
+{% block meta_description %}A private record of your EuphoriaDJ orders, their payment status and delivery progress.{% endblock %}
 
 {% block content %}
-<section class="page-banner">
+<section class="page-intro">
     <div class="container">
-        <nav aria-label="breadcrumb">
-            <ol class="breadcrumb breadcrumb-light mb-3">
+        <nav aria-label="Breadcrumb">
+            <ol class="breadcrumb">
                 <li class="breadcrumb-item"><a href="{% url 'home_page' %}">Home</a></li>
-                <li class="breadcrumb-item active text-white" aria-current="page">My orders</li>
+                <li class="breadcrumb-item active" aria-current="page">Orders</li>
             </ol>
         </nav>
-        <h1 class="mb-2">My orders</h1>
-        <p class="mb-0 text-white-50">Private order history for {{ user.first_name|default:user.username }}.</p>
+        <div class="page-intro__row">
+            <div>
+                <span class="section-kicker">Your account</span>
+                <h1>Orders.</h1>
+                <p>A private record of your purchases and their progress from confirmation to delivery.</p>
+            </div>
+            <p class="page-intro__aside">{{ page_obj.paginator.count }} order{{ page_obj.paginator.count|pluralize }} placed by {{ user.first_name|default:user.username }}.</p>
+        </div>
     </div>
 </section>
 
-<section class="container-fluid py-5">
-    <div class="container py-3">
-        <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
-            <p class="text-muted mb-0">{{ page_obj.paginator.count }} order{{ page_obj.paginator.count|pluralize }}</p>
-            <a href="{% url 'shop_page' %}" class="btn btn-outline-primary rounded-pill px-4"><i class="fas fa-arrow-left me-2"></i>Continue shopping</a>
+<section class="orders-page">
+    <div class="container">
+        <div class="favorites-toolbar">
+            <p>{{ page_obj.paginator.count }} order{{ page_obj.paginator.count|pluralize }}</p>
+            <a href="{% url 'shop_page' %}" class="btn btn-sm btn-outline-primary">Continue exploring <i class="fas fa-arrow-right" aria-hidden="true"></i></a>
         </div>
 
         {% if orders %}
-            <div class="d-flex flex-column gap-4">
+            <div class="orders-list mt-4">
                 {% for order in orders %}
-                    <article class="order-card p-4 p-lg-5">
-                        <div class="d-flex flex-wrap justify-content-between gap-3 border-bottom pb-3 mb-4">
-                            <div>
-                                <span class="text-muted small d-block">Order</span>
-                                <a href="{% url 'order_detail' order.order_number %}" class="h5 text-dark text-decoration-none">{{ order.order_number }}</a>
-                                <span class="text-muted small d-block">{{ order.created_at|date:"M j, Y · g:i A" }}</span>
+                    <article class="order-card">
+                        <div>
+                            <div class="order-card__top">
+                                <a href="{% url 'order_detail' order.order_number %}" class="order-card__number">{{ order.order_number }}</a>
+                                <span class="status-pill status-{{ order.payment_status_css }}"><span class="status-pill__label">Payment</span> {{ order.get_payment_status_display }}</span>
+                                <span class="status-pill status-{{ order.order_status_css }}"><span class="status-pill__label">Order</span> {{ order.get_order_status_display }}</span>
                             </div>
-                            <div class="d-flex flex-wrap align-items-center gap-2">
-                                <span class="badge bg-{{ order.payment_status_css }}">{{ order.get_payment_status_display }}</span>
-                                <span class="badge bg-{{ order.order_status_css }}">{{ order.get_order_status_display }}</span>
+                            <p class="order-card__date">Placed {{ order.created_at|date:"M j, Y · g:i A" }}</p>
+
+                            <div class="order-card__items">
+                                {% for item in order.items.all %}
+                                    <span>{{ item.product_name|truncatechars:38 }}{% if item.quantity > 1 %} ×{{ item.quantity }}{% endif %}</span>
+                                {% empty %}
+                                    <span>No line items recorded.</span>
+                                {% endfor %}
                             </div>
+                            <p class="order-card__meta">{{ order.get_payment_method_display }} · {{ order.total_quantity }} object{{ order.total_quantity|pluralize }}</p>
                         </div>
 
-                        <div class="row g-4 align-items-center">
-                            <div class="col-lg-7">
-                                <div class="d-flex flex-wrap gap-3">
-                                    {% for item in order.items.all %}
-                                        <div class="order-preview d-flex align-items-center gap-2">
-                                            {% if item.product_image %}
-                                                <img src="{{ item.product_image.url }}" class="order-thumb" alt="{{ item.product_name }}">
-                                            {% else %}
-                                                <img src="{% static 'theme/img/product-1.png' %}" class="order-thumb" alt="{{ item.product_name }}">
-                                            {% endif %}
-                                            <div>
-                                                <span class="small fw-semibold d-block">{{ item.product_name|truncatechars:32 }}</span>
-                                                <span class="small text-muted">×{{ item.quantity }} · {{ item.unit_price|money }}</span>
-                                            </div>
-                                        </div>
-                                    {% endfor %}
-                                </div>
-                            </div>
-                            <div class="col-lg-5">
-                                <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
-                                    <div>
-                                        <span class="text-muted small d-block">{{ order.get_payment_method_display }}</span>
-                                        <span class="h5 text-primary mb-0">{{ order.final_total|money }}</span>
-                                    </div>
-                                    <div class="d-flex flex-wrap gap-2">
-                                        {% if order.payment_method == 'razorpay' and order.payment_status != 'success' and order.order_status != 'cancelled' %}
-                                            <a href="{% url 'order_payment' order.order_number %}" class="btn btn-primary rounded-pill px-3">Pay now</a>
-                                        {% endif %}
-                                        <a href="{% url 'order_detail' order.order_number %}" class="btn btn-outline-primary rounded-pill px-3">View details</a>
-                                    </div>
-                                </div>
+                        <div class="order-card__side">
+                            <span class="order-card__total">{{ order.final_total|money }}</span>
+                            <div class="d-flex flex-wrap justify-content-end gap-2">
+                                {% if order.payment_method == 'razorpay' and order.payment_status != 'success' and order.order_status != 'cancelled' %}
+                                    <a href="{% url 'order_payment' order.order_number %}" class="btn btn-sm btn-primary">Complete payment</a>
+                                {% endif %}
+                                <a href="{% url 'order_detail' order.order_number %}" class="text-link">View order <i class="fas fa-arrow-right" aria-hidden="true"></i></a>
                             </div>
                         </div>
                     </article>
@@ -79,12 +67,12 @@
             </div>
 
             {% if page_obj.has_other_pages %}
-                <nav class="mt-5" aria-label="Order pagination">
-                    <ul class="pagination justify-content-center">
+                <nav aria-label="Order pagination">
+                    <ul class="pagination">
                         {% if page_obj.has_previous %}
-                            <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}">Previous</a></li>
+                            <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}" aria-label="Previous page">&larr;</a></li>
                         {% else %}
-                            <li class="page-item disabled"><span class="page-link">Previous</span></li>
+                            <li class="page-item disabled"><span class="page-link">&larr;</span></li>
                         {% endif %}
                         {% for number in page_obj.paginator.page_range %}
                             <li class="page-item {% if page_obj.number == number %}active{% endif %}">
@@ -96,19 +84,19 @@
                             </li>
                         {% endfor %}
                         {% if page_obj.has_next %}
-                            <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}">Next</a></li>
+                            <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}" aria-label="Next page">&rarr;</a></li>
                         {% else %}
-                            <li class="page-item disabled"><span class="page-link">Next</span></li>
+                            <li class="page-item disabled"><span class="page-link">&rarr;</span></li>
                         {% endif %}
                     </ul>
                 </nav>
             {% endif %}
         {% else %}
-            <div class="empty-state text-center">
-                <i class="fas fa-box-open fa-2x text-primary mb-3"></i>
-                <h2 class="h4">No orders yet</h2>
-                <p class="text-muted mb-4">When you place an order, it will appear here with its payment and delivery status.</p>
-                <a href="{% url 'shop_page' %}" class="btn btn-primary rounded-pill px-4">Start shopping</a>
+            <div class="empty-state mt-4">
+                <span class="empty-state__mark"><i class="fas fa-box-open" aria-hidden="true"></i></span>
+                <h2>No orders yet.</h2>
+                <p>When you place an order, it will appear here with its payment and delivery status. Your order history remains private to your account.</p>
+                <a href="{% url 'shop_page' %}" class="btn btn-primary">Explore the collection</a>
             </div>
         {% endif %}
     </div>

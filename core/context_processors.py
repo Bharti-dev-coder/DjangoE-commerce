@@ -27,6 +27,7 @@ def storefront(request):
         'favorite_count': favorite_count,
         'currency_symbol': settings.STORE_CURRENCY_SYMBOL,
         'currency_code': settings.STORE_CURRENCY_CODE,
+        'free_shipping_threshold': settings.STORE_FREE_SHIPPING_THRESHOLD,
         'store_profile': StoreProfile.objects.first(),
         'razorpay_enabled': bool(settings.RAZORPAY_KEY_ID and settings.RAZORPAY_KEY_SECRET),
         'ai_model_name': getattr(settings, 'OLLAMA_MODEL', ''),

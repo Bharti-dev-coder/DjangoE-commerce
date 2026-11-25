@@ -1,64 +1,110 @@
 {% extends "app.html" %}
 {% load static %}
 
-{% block title %}About | EuphoriaDJ{% endblock %}
-{% block meta_description %}About the EuphoriaDJ electronics storefront.{% endblock %}
+{% block title %}Our story | EuphoriaDJ{% endblock %}
+{% block meta_description %}The idea behind EuphoriaDJ: a considered edit of everyday electronics, chosen for usefulness, longevity and the pleasure of use.{% endblock %}
 
 {% block content %}
-<section class="page-banner">
+<section class="page-intro">
     <div class="container">
-        <nav aria-label="breadcrumb">
-            <ol class="breadcrumb breadcrumb-light mb-3">
+        <nav aria-label="Breadcrumb">
+            <ol class="breadcrumb">
                 <li class="breadcrumb-item"><a href="{% url 'home_page' %}">Home</a></li>
-                <li class="breadcrumb-item active text-white" aria-current="page">About</li>
+                <li class="breadcrumb-item active" aria-current="page">Our story</li>
             </ol>
         </nav>
-        <h1 class="mb-2">About EuphoriaDJ</h1>
-        <p class="mb-0 text-white-50">A focused storefront for discovering and shortlisting everyday technology.</p>
-    </div>
-</section>
-
-<section class="container py-5">
-    <div class="row g-5 align-items-center py-3">
-        <div class="col-lg-7">
-            <span class="section-kicker">Our approach</span>
-            <h2 class="section-heading mb-3">A clear catalog, not a crowded aisle.</h2>
-            <p class="text-muted">EuphoriaDJ is built around a simple idea: make it easy to find a product, understand its price, and keep track of the items worth revisiting. The storefront uses the project’s existing Django account system, so favorites and carts belong to the person who created them.</p>
-            <p class="text-muted mb-4">Browse by category, search by name or description, narrow the price range, and sort the results. When you find something useful, save it to your private favorites list or add it to your cart.</p>
-            <div class="d-flex flex-wrap gap-3">
-                <a href="{% url 'shop_page' %}" class="btn btn-primary rounded-pill px-4">Browse products</a>
-                <a href="{% url 'contact_page' %}" class="btn btn-outline-primary rounded-pill px-4">Contact the team</a>
+        <div class="page-intro__row">
+            <div>
+                <span class="section-kicker">The house</span>
+                <h1>A quieter way<br>to choose.</h1>
+                <p>EuphoriaDJ is a considered storefront for the technology that earns a place in your everyday.</p>
             </div>
-        </div>
-        <div class="col-lg-5">
-            <img src="{% static 'theme/img/header-img.jpg' %}" class="img-fluid rounded-4 shadow-sm" alt="Electronics on display">
+            <p class="page-intro__aside">A clear catalogue, thoughtful service and objects chosen to be lived with — not simply owned.</p>
         </div>
     </div>
 </section>
 
-<section class="bg-light py-5">
-    <div class="container py-3">
-        <div class="row g-4">
-            <div class="col-md-4">
-                <div class="bg-white rounded-4 p-4 h-100 border">
-                    <span class="category-icon"><i class="fas fa-search"></i></span>
-                    <h3 class="h5">Find products</h3>
-                    <p class="text-muted mb-0">Search and filter by category, price, and arrival order using the shop controls.</p>
-                </div>
+<section class="section section--tight">
+    <div class="container">
+        <div class="content-grid">
+            <div>
+                <span class="section-kicker">Our point of view</span>
+                <h2>Buy less.<br>Choose well.</h2>
+                <p>We began with a simple idea: make it easy to find an object, understand its price, and keep track of the things worth revisiting. Everything you see here is drawn from one focused catalogue, presented without noise.</p>
+                <p>Browse by category, search by name or description, narrow the price range and sort the results. When something feels right, save it to your private favorites or add it to your bag. Your account keeps both exactly as you left them.</p>
+                <a href="{% url 'shop_page' %}" class="text-link">Explore the collection <i class="fas fa-arrow-right" aria-hidden="true"></i></a>
+                <p class="content-quote">“The best objects are the ones you stop noticing — because they simply belong.”</p>
             </div>
-            <div class="col-md-4">
-                <div class="bg-white rounded-4 p-4 h-100 border">
-                    <span class="category-icon"><i class="fas fa-heart"></i></span>
-                    <h3 class="h5">Save a shortlist</h3>
-                    <p class="text-muted mb-0">Favorites are stored against your account and are never shared with other shoppers.</p>
+            <div>
+                <div class="content-media">
+                    <img src="{% static 'theme/img/product-banner-2.jpg' %}" alt="An object from the EuphoriaDJ edit" loading="lazy" decoding="async">
                 </div>
+                <p class="small text-muted mt-2 mb-0">The listening room · A study in considered form</p>
             </div>
-            <div class="col-md-4">
-                <div class="bg-white rounded-4 p-4 h-100 border">
-                    <span class="category-icon"><i class="fas fa-shopping-cart"></i></span>
-                    <h3 class="h5">Keep a cart and order history</h3>
-                    <p class="text-muted mb-0">Your cart persists between visits and calculates line totals from the stored product price. Checkout keeps an order snapshot, and order history is visible only to your account.</p>
-                </div>
+        </div>
+    </div>
+</section>
+
+<section class="section section--ivory">
+    <div class="container">
+        <div class="section-head">
+            <div>
+                <span class="section-kicker">How the house works</span>
+                <h2 class="section-heading">A storefront with fewer distractions.</h2>
+            </div>
+        </div>
+        <div class="service-grid">
+            <div class="service-card">
+                <span class="service-card__index">01</span>
+                <i class="fas fa-search" aria-hidden="true"></i>
+                <h2>Find with clarity</h2>
+                <p>Search and refine the collection by category, price and arrival order with a calm, focused interface.</p>
+            </div>
+            <div class="service-card">
+                <span class="service-card__index">02</span>
+                <i class="far fa-heart" aria-hidden="true"></i>
+                <h2>Save a shortlist</h2>
+                <p>Favorites belong to your account and remain private to you — a quiet place for things worth a second look.</p>
+            </div>
+            <div class="service-card">
+                <span class="service-card__index">03</span>
+                <i class="fas fa-shopping-bag" aria-hidden="true"></i>
+                <h2>Keep your bag</h2>
+                <p>Your bag persists between visits, with totals calculated from the live price stored in the catalogue.</p>
+            </div>
+            <div class="service-card">
+                <span class="service-card__index">04</span>
+                <i class="fas fa-lock" aria-hidden="true"></i>
+                <h2>Protected actions</h2>
+                <p>Every account action is protected, and checkout totals are verified on the server before an order is created.</p>
+            </div>
+            <div class="service-card">
+                <span class="service-card__index">05</span>
+                <i class="fas fa-box" aria-hidden="true"></i>
+                <h2>Clear order history</h2>
+                <p>Your orders, payment status and delivery progress remain visible only to your account.</p>
+            </div>
+            <div class="service-card">
+                <span class="service-card__index">06</span>
+                <i class="fas fa-concierge-bell" aria-hidden="true"></i>
+                <h2>Personal service</h2>
+                <p>Ask the concierge for a more personal edit, or contact client services for help with an order.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="section section--tight">
+    <div class="container">
+        <div class="account-cta">
+            <div>
+                <span class="eyebrow">Begin your collection</span>
+                <h2>An account, kept private to you.</h2>
+                <p>Save favorites, keep your bag and follow every order from a single, considered place.</p>
+            </div>
+            <div class="account-cta__actions">
+                <a href="{% url 'shop_page' %}" class="btn btn-light">Explore the collection</a>
+                <a href="{% url 'contact_page' %}" class="btn btn-outline-light">Contact us</a>
             </div>
         </div>
     </div>

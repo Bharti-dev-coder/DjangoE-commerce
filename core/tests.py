@@ -67,7 +67,7 @@ class HomepageAndTemplateTests(TestCase):
         self.assertContains(response, 'Pulse Headphones')
         self.assertContains(response, 'aria-label="View product details for Pulse Headphones"')
         self.assertContains(response, reverse('product_detail', args=[self.product.slug]))
-        self.assertContains(response, '/static/theme/css/style.css')
+        self.assertContains(response, '/static/theme/css/store.css')
         self.assertContains(response, '/static/theme/js/main.js')
         self.assertNotContains(response, '{% load')
 
@@ -102,7 +102,7 @@ class HomepageAndTemplateTests(TestCase):
                 response = self.client.get(reverse(url_name))
                 self.assertEqual(response.status_code, 200)
                 self.assertTemplateUsed(response, 'app.html')
-                self.assertContains(response, '/static/theme/css/style.css')
+                self.assertContains(response, '/static/theme/css/store.css')
 
 
 @override_settings(EMAIL_BACKEND=LOCMEM_EMAIL)
@@ -680,9 +680,10 @@ class StaticMediaTests(TestCase):
     def test_page_references_local_theme_assets_not_missing_cdn(self):
         response = self.client.get(reverse('home_page'))
         self.assertContains(response, '/static/theme/css/bootstrap.min.css')
-        self.assertContains(response, '/static/theme/css/style.css')
+        self.assertContains(response, '/static/theme/css/store.css')
+        self.assertContains(response, '/static/theme/css/ai_chat.css')
         self.assertContains(response, '/static/theme/js/main.js')
-        self.assertContains(response, '/static/theme/vendor/jquery-3.6.4.min.js')
+        self.assertContains(response, '/static/theme/js/ai_chat.js')
 
     def test_image_field_url_uses_media_url_and_file_can_exist(self):
         with tempfile.TemporaryDirectory() as temp_dir:

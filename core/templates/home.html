@@ -1,240 +1,237 @@
 {% extends "app.html" %}
-{% load static %}
+{% load static store_tags %}
 
-{% block title %}EuphoriaDJ | Electronics Store{% endblock %}
-{% block meta_description %}Browse the EuphoriaDJ electronics catalog, save favorites, and keep a cart tied to your account.{% endblock %}
+{% block title %}EuphoriaDJ — Considered electronics for everyday rituals{% endblock %}
+{% block meta_description %}Discover a considered edit of electronics and objects at EuphoriaDJ. Search the collection, save favorites and keep a private bag tied to your account.{% endblock %}
 
 {% block content %}
-<section class="hero-section py-4 py-lg-5">
-    <div class="container py-4 py-lg-5">
-        <div class="row align-items-center g-4">
-            <div class="col-lg-7 hero-copy">
-                <span class="eyebrow mb-3"><i class="fas fa-bolt"></i>Curated technology, clearly presented</span>
-                <h1 class="mb-4">Everyday electronics,<br><span class="text-primary">ready for your shortlist.</span></h1>
-                <p class="lead text-muted mb-4">
-                    Explore phones, laptops, audio, cameras, and accessories in one focused storefront.
-                    Search the catalog, compare prices, save favorites, and keep your cart between visits.
-                </p>
-                <div class="d-flex flex-wrap gap-3">
-                    <a href="{% url 'shop_page' %}" class="btn btn-primary rounded-pill py-3 px-5">
-                        <i class="fas fa-store me-2"></i>Browse the shop
-                    </a>
-                    {% if user.is_authenticated %}
-                        <a href="{% url 'cart' %}" class="btn btn-outline-primary rounded-pill py-3 px-4">
-                            <i class="fas fa-shopping-cart me-2"></i>View your cart
-                        </a>
-                    {% else %}
-                        <a href="{% url 'user_register' %}" class="btn btn-outline-primary rounded-pill py-3 px-4">
-                            <i class="fas fa-user-plus me-2"></i>Create an account
-                        </a>
-                    {% endif %}
+<section class="home-hero">
+    <div class="container">
+        <div class="home-hero__grid">
+            <div class="hero-copy">
+                <span class="eyebrow">The considered edit · 2026</span>
+                <h1 class="hero-title">Objects of<br><em>quiet intention.</em></h1>
+                <p>Technology, chosen slowly. A focused collection of everyday electronics selected for the way they look, the way they feel, and the way they fit into a life well lived.</p>
+                <div class="hero-actions">
+                    <a href="{% url 'shop_page' %}" class="btn btn-primary">Explore the collection <i class="fas fa-arrow-right" aria-hidden="true"></i></a>
+                    <button type="button" class="btn btn-outline-primary" data-ai-open data-ai-prompt="Help me find the right product">
+                        Ask the concierge
+                    </button>
                 </div>
-                <button type="button" class="btn btn-link text-decoration-none text-start px-0 mt-3"
-                        data-ai-open data-ai-prompt="Help me find the right product">
-                    <i class="fas fa-comments text-primary me-2"></i>Need help choosing? Ask the local assistant
-                </button>
-                <div class="d-flex flex-wrap gap-4 mt-4 pt-2 text-muted small">
-                    <span><i class="fas fa-search text-primary me-2"></i>Search and filter the catalog</span>
-                    <span><i class="fas fa-heart text-primary me-2"></i>Private favorites</span>
-                    <span><i class="fas fa-lock text-primary me-2"></i>Account-based cart</span>
+                <div class="hero-assurance">
+                    <span class="hero-assurance__item"><i class="fas fa-search" aria-hidden="true"></i>Search the edit</span>
+                    <span class="hero-assurance__item"><i class="far fa-heart" aria-hidden="true"></i>Private favorites</span>
+                    <span class="hero-assurance__item"><i class="fas fa-lock" aria-hidden="true"></i>Secure checkout</span>
                 </div>
             </div>
-            <div class="col-lg-5">
-                <div class="hero-product-wrap">
-                    <img src="{% static 'theme/img/carousel-1.png' %}" class="hero-product-image" alt="Featured electronics display">
-                    <div class="hero-float-card">
-                        <span class="d-block text-primary fw-bold mb-1"><i class="fas fa-layer-group me-2"></i>One catalog</span>
-                        <span class="d-block small text-muted">Products, prices, and categories are managed in Django Admin.</span>
+
+            <div class="hero-visual">
+                {% if featured_products %}
+                    {% with hero=featured_products.0 %}
+                        <a href="{% url 'product_detail' hero.slug %}" class="hero-visual__link">
+                            <div class="hero-visual__stage">
+                                <span class="hero-visual__index">No. {{ hero.id|stringformat:"03d" }} · {{ hero.category.name|default:"The edit" }}</span>
+                                {% if hero.image %}
+                                    <img src="{{ hero.image.url }}" alt="{{ hero.name }}" loading="eager" decoding="async">
+                                {% else %}
+                                    <img src="{% static 'theme/img/carousel-1.png' %}" alt="{{ hero.name }}" loading="eager" decoding="async">
+                                {% endif %}
+                                <span class="hero-visual__seal">Selected<br>by Euphoria</span>
+                            </div>
+                            <div class="hero-caption">
+                                <div class="hero-caption__meta">
+                                    <span>Featured object</span>
+                                    <strong>{{ hero.name }}</strong>
+                                </div>
+                                <span class="hero-caption__price">{{ hero.price|money }}</span>
+                                <span class="hero-caption__arrow"><i class="fas fa-arrow-right" aria-hidden="true"></i></span>
+                            </div>
+                        </a>
+                    {% endwith %}
+                {% else %}
+                    <div class="hero-visual__stage">
+                        <span class="hero-visual__index">The collection</span>
+                        <img src="{% static 'theme/img/carousel-1.png' %}" alt="A considered edit of electronics" loading="eager">
+                        <span class="hero-visual__seal">Selected<br>by Euphoria</span>
                     </div>
-                </div>
+                    <div class="hero-caption">
+                        <div class="hero-caption__meta">
+                            <span>The edit</span>
+                            <strong>Considered objects</strong>
+                        </div>
+                        <a href="{% url 'shop_page' %}" class="hero-caption__arrow" aria-label="Explore the shop"><i class="fas fa-arrow-right" aria-hidden="true"></i></a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="hero-meta">
+            <div class="hero-meta__item">
+                <span class="hero-meta__label">The collection</span>
+                <span class="hero-meta__value">Selected with intention</span>
+            </div>
+            <div class="hero-meta__item">
+                <span class="hero-meta__label">Client care</span>
+                <span class="hero-meta__value">Personal, considered service</span>
+            </div>
+            <div class="hero-meta__item">
+                <span class="hero-meta__label">Your account</span>
+                <span class="hero-meta__value">Favorites and bag, kept privately</span>
             </div>
         </div>
     </div>
 </section>
 
-<section class="service-strip bg-white">
-    <div class="container-fluid px-3 px-lg-5">
-        <div class="row g-0">
-            <div class="col-6 col-lg-3">
-                <div class="service-item d-flex align-items-center">
-                    <i class="fas fa-search fa-2x text-primary"></i>
-                    <div class="ms-3">
-                        <h6 class="text-uppercase mb-1">Find it faster</h6>
-                        <p class="mb-0 small text-muted">Search, filter, and sort the catalog.</p>
-                    </div>
-                </div>
+<section class="section section--tight" aria-labelledby="categories-heading">
+    <div class="container">
+        <div class="section-head">
+            <div>
+                <span class="section-kicker">Browse the edit</span>
+                <h2 id="categories-heading" class="section-heading">Collections</h2>
             </div>
-            <div class="col-6 col-lg-3">
-                <div class="service-item d-flex align-items-center">
-                    <i class="fas fa-heart fa-2x text-primary"></i>
-                    <div class="ms-3">
-                        <h6 class="text-uppercase mb-1">Save favorites</h6>
-                        <p class="mb-0 small text-muted">Keep a private shortlist on your account.</p>
-                    </div>
-                </div>
-            </div>
-            <div class="col-6 col-lg-3">
-                <div class="service-item d-flex align-items-center">
-                    <i class="fas fa-shopping-cart fa-2x text-primary"></i>
-                    <div class="ms-3">
-                        <h6 class="text-uppercase mb-1">Keep your cart</h6>
-                        <p class="mb-0 small text-muted">Your cart belongs to your account.</p>
-                    </div>
-                </div>
-            </div>
-            <div class="col-6 col-lg-3">
-                <div class="service-item d-flex align-items-center">
-                    <i class="fas fa-lock fa-2x text-primary"></i>
-                    <div class="ms-3">
-                        <h6 class="text-uppercase mb-1">Protected actions</h6>
-                        <p class="mb-0 small text-muted">Forms use POST and CSRF protection.</p>
-                    </div>
-                </div>
-            </div>
+            <a href="{% url 'shop_page' %}" class="text-link">All products <i class="fas fa-arrow-right" aria-hidden="true"></i></a>
         </div>
-    </div>
-</section>
 
-<section class="py-5" aria-labelledby="categories-heading">
-    <div class="container py-3">
-        <div class="row align-items-end g-3 mb-4">
-            <div class="col-md-8">
-                <span class="section-kicker">Browse by type</span>
-                <h2 id="categories-heading" class="section-heading mb-0">Shop categories</h2>
-            </div>
-            <div class="col-md-4 text-md-end">
-                <a href="{% url 'shop_page' %}" class="btn btn-outline-primary rounded-pill px-4">View all products</a>
-            </div>
-        </div>
-        <div class="row g-4">
-            {% for category in categories %}
-                <div class="col-6 col-md-4 col-xl-3">
+        {% if categories %}
+            <div class="category-grid">
+                {% for category in categories %}
                     <a href="{% url 'shop_page' %}?category={{ category.id }}" class="category-card">
-                        <span class="category-icon">
-                            {% cycle 'fas fa-mobile-alt' 'fas fa-laptop' 'fas fa-headphones' 'fas fa-camera' 'fas fa-clock' 'fas fa-plug' as category_icon silent %}
-                            <i class="{{ category_icon }}"></i>
-                        </span>
-                        <h3 class="h5 mb-1">{{ category.name }}</h3>
-                        <p class="text-muted small mb-0">{{ category.available_count }} product{{ category.available_count|pluralize }}</p>
+                        <div class="category-card__top">
+                            <span class="category-card__index">{{ forloop.counter|stringformat:"02d" }}</span>
+                            <span class="category-card__icon">
+                                {% cycle 'fas fa-mobile-alt' 'fas fa-laptop' 'fas fa-headphones' 'fas fa-camera' 'fas fa-clock' 'fas fa-plug' as category_icon silent %}
+                                <i class="{{ category_icon }}" aria-hidden="true"></i>
+                            </span>
+                        </div>
+                        <div>
+                            <h3>{{ category.name }}</h3>
+                            <p>{{ category.available_count }} object{{ category.available_count|pluralize }}</p>
+                        </div>
+                        <span class="category-card__arrow"><i class="fas fa-arrow-right" aria-hidden="true"></i></span>
                     </a>
-                </div>
-            {% empty %}
-                <div class="col-12">
-                    <div class="empty-state text-center">
-                        <i class="fas fa-layer-group fa-2x text-primary mb-3"></i>
-                        <h3 class="h5">Categories will appear here</h3>
-                        <p class="text-muted mb-3">The catalog is being prepared. Products added in Django Admin will appear in the shop and on this page.</p>
-                        <a href="{% url 'shop_page' %}" class="btn btn-primary rounded-pill px-4">Open the shop</a>
-                    </div>
-                </div>
-            {% endfor %}
-        </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="empty-state">
+                <span class="empty-state__mark"><i class="fas fa-layer-group" aria-hidden="true"></i></span>
+                <h2>Collections, in preparation.</h2>
+                <p>Products added through Django Admin will appear here and in the shop.</p>
+                <a href="{% url 'shop_page' %}" class="btn btn-primary">Open the shop</a>
+            </div>
+        {% endif %}
     </div>
 </section>
 
-<section class="py-5 bg-light" aria-labelledby="products-heading">
-    <div class="container py-3">
-        <div class="row align-items-end g-3 mb-4">
-            <div class="col-md-8">
-                <span class="section-kicker">Newest first</span>
-                <h2 id="products-heading" class="section-heading mb-0">Featured products</h2>
+<section class="section section--ivory" aria-labelledby="products-heading">
+    <div class="container">
+        <div class="section-head">
+            <div>
+                <span class="section-kicker">Featured products</span>
+                <h2 id="products-heading" class="section-heading">The latest arrivals</h2>
+                <p>A considered selection of new objects, ready for a closer look.</p>
             </div>
-            <div class="col-md-4 text-md-end">
-                <a href="{% url 'shop_page' %}" class="btn btn-primary rounded-pill px-4">Shop all</a>
-            </div>
+            <a href="{% url 'shop_page' %}" class="text-link">Shop all objects <i class="fas fa-arrow-right" aria-hidden="true"></i></a>
         </div>
-        <div class="row g-4 product">
-            {% for product in recent_products %}
-                <div class="col-sm-6 col-lg-4 col-xl-3">
+
+        {% if recent_products %}
+            <div class="product-grid product-grid--featured">
+                {% for product in recent_products %}
                     {% include "partials/product_card.html" with product=product %}
-                </div>
-            {% empty %}
-                <div class="col-12">
-                    <div class="empty-state text-center">
-                        <i class="fas fa-box-open fa-2x text-primary mb-3"></i>
-                        <h3 class="h5">The shelves are being stocked</h3>
-                        <p class="text-muted mb-3">No products are available yet. Add products in Django Admin or run the demo data command, then refresh this page.</p>
-                        <a href="{% url 'shop_page' %}" class="btn btn-primary rounded-pill px-4">Visit the shop</a>
-                    </div>
-                </div>
-            {% endfor %}
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="empty-state">
+                <span class="empty-state__mark"><i class="fas fa-box-open" aria-hidden="true"></i></span>
+                <h2>The shelves are being stocked.</h2>
+                <p>No products are available yet. Add products in Django Admin or run the demo data command, then refresh this page.</p>
+                <a href="{% url 'shop_page' %}" class="btn btn-primary">Visit the shop</a>
+            </div>
+        {% endif %}
+    </div>
+</section>
+
+<section class="section section--tight">
+    <div class="container">
+        <div class="editorial-feature">
+            <div class="editorial-feature__media">
+                <img src="{% static 'theme/img/product-banner-2.jpg' %}" alt="A considered listening object" loading="lazy" decoding="async">
+                <span class="editorial-feature__caption">The listening room · EuphoriaDJ</span>
+            </div>
+            <div class="editorial-feature__copy">
+                <span class="section-kicker">Our point of view</span>
+                <h2>Buy less. Choose well. Live with it longer.</h2>
+                <p>We believe the best objects earn their place. That is why our edit favours clarity over clutter: useful technology, honest materials and details that reward a second look.</p>
+                <a href="{% url 'about_page' %}" class="text-link">Read our story <i class="fas fa-arrow-right" aria-hidden="true"></i></a>
+                <span class="editorial-feature__signature">— The EuphoriaDJ house</span>
+            </div>
         </div>
     </div>
 </section>
 
 {% if ai_recommendations %}
-<section class="py-5" aria-labelledby="ai-picks-heading">
-    <div class="container py-3">
-        <div class="row align-items-end g-3 mb-4">
-            <div class="col-md-8">
-                <span class="section-kicker"><i class="fas fa-comments me-2"></i>Catalog-aware picks</span>
-                <h2 id="ai-picks-heading" class="section-heading mb-0">Picked for you</h2>
-                <p class="text-muted mb-0 mt-2">Based on your recent views, favorites, cart, and order activity — or new arrivals if you are just browsing.</p>
+<section class="section recommendation-band" aria-labelledby="ai-picks-heading">
+    <div class="container">
+        <div class="section-head">
+            <div>
+                <span class="section-kicker">Made personal</span>
+                <h2 id="ai-picks-heading" class="section-heading">Selected for you</h2>
+                <p class="mt-2">A small edit shaped by your recent views, favorites, bag and order activity — or simply new arrivals if you are just browsing.</p>
             </div>
-            <div class="col-md-4 text-md-end">
-                <button type="button" class="btn btn-outline-primary rounded-pill px-4"
-                        data-ai-open data-ai-prompt="Recommend something for me">
-                    <i class="fas fa-comments me-2"></i>Ask the assistant
-                </button>
-            </div>
+            <button type="button" class="assistant-inline" data-ai-open data-ai-prompt="Recommend something for me">
+                <i class="fas fa-comments" aria-hidden="true"></i> Ask the concierge
+            </button>
         </div>
-        <div class="row g-4 product">
+        <div class="product-grid">
             {% for recommendation in ai_recommendations %}
-                <div class="col-sm-6 col-lg-4 col-xl-3">
-                    {% include "partials/product_card.html" with product=recommendation.product %}
-                </div>
+                {% include "partials/product_card.html" with product=recommendation.product %}
             {% endfor %}
         </div>
     </div>
 </section>
 {% endif %}
 
-{% if recent_products %}
-<section class="py-5">
-    <div class="container py-3">
-        <div class="row g-4">
-            <div class="col-lg-6">
-                <a href="{% url 'shop_page' %}" class="d-block position-relative rounded overflow-hidden text-decoration-none">
-                    <img src="{% static 'theme/img/product-banner-2.jpg' %}" class="img-fluid w-100" alt="Featured product promotion">
-                    <div class="position-absolute top-0 start-0 w-100 h-100 d-flex flex-column justify-content-center p-4 p-lg-5" style="background: rgba(24, 24, 27, 0.55);">
-                        <span class="text-white text-uppercase small fw-bold mb-2" style="letter-spacing: .14em;">Explore the catalog</span>
-                        <h2 class="display-5 text-white mb-3">Find your next upgrade.</h2>
-                        <span class="btn btn-primary rounded-pill px-4 align-self-start">Shop products</span>
-                    </div>
-                </a>
+<section class="section section--tight">
+    <div class="container">
+        <div class="values-grid">
+            <div class="value-item">
+                <i class="fas fa-search" aria-hidden="true"></i>
+                <h3>Find it easily</h3>
+                <p>Search, filter and sort the collection with a quiet, focused interface.</p>
             </div>
-            <div class="col-lg-6">
-                <a href="{% url 'shop_page' %}" class="d-block position-relative rounded overflow-hidden text-decoration-none">
-                    <img src="{% static 'theme/img/product-banner-3.jpg' %}" class="img-fluid w-100" alt="Product category promotion">
-                    <div class="position-absolute top-0 start-0 w-100 h-100 d-flex flex-column justify-content-center p-4 p-lg-5" style="background: rgba(24, 24, 27, 0.5);">
-                        <span class="text-white text-uppercase small fw-bold mb-2" style="letter-spacing: .14em;">Browse by category</span>
-                        <h2 class="display-5 text-white mb-3">Shop the collection.</h2>
-                        <span class="btn btn-light rounded-pill px-4 align-self-start">View categories</span>
-                    </div>
-                </a>
+            <div class="value-item">
+                <i class="far fa-heart" aria-hidden="true"></i>
+                <h3>Keep a private list</h3>
+                <p>Save the objects worth a second look to a favorites list of your own.</p>
+            </div>
+            <div class="value-item">
+                <i class="fas fa-shopping-bag" aria-hidden="true"></i>
+                <h3>A bag that stays</h3>
+                <p>Your selections are kept to your account, ready when you return.</p>
+            </div>
+            <div class="value-item">
+                <i class="fas fa-shield-alt" aria-hidden="true"></i>
+                <h3>Protected actions</h3>
+                <p>Private account pages, protected forms and considered checkout.</p>
             </div>
         </div>
     </div>
 </section>
-{% endif %}
 
-<section class="py-5 bg-light">
-    <div class="container py-4">
-        <div class="row align-items-center g-4">
-            <div class="col-lg-8">
-                <span class="section-kicker">Your storefront account</span>
-                <h2 class="section-heading mb-2">Save the products worth a second look.</h2>
-                <p class="text-muted mb-0">A EuphoriaDJ account keeps favorites and cart items private to you. Sign in to continue where you left off.</p>
+<section class="section section--tight">
+    <div class="container">
+        <div class="account-cta">
+            <div>
+                <span class="eyebrow">Your storefront account</span>
+                <h2>Save the objects worth a second look.</h2>
+                <p>A EuphoriaDJ account keeps your favorites and bag private to you. Sign in to continue where you left off, or create an account to begin your collection.</p>
             </div>
-            <div class="col-lg-4 text-lg-end">
+            <div class="account-cta__actions">
                 {% if user.is_authenticated %}
-                    <a href="{% url 'favorites' %}" class="btn btn-primary rounded-pill px-4 py-3 me-2 mb-2 mb-lg-0">
-                        Open favorites <span class="badge bg-white text-primary ms-1">{{ favorite_count }}</span>
-                    </a>
-                    <a href="{% url 'cart' %}" class="btn btn-outline-primary rounded-pill px-4 py-3">View cart</a>
+                    <a href="{% url 'favorites' %}" class="btn btn-light">Open favorites</a>
+                    <a href="{% url 'cart' %}" class="btn btn-outline-light">View your bag</a>
                 {% else %}
-                    <a href="{% url 'user_register' %}" class="btn btn-primary rounded-pill px-4 py-3 me-2 mb-2 mb-lg-0">Create account</a>
-                    <a href="{% url 'user_login' %}" class="btn btn-outline-primary rounded-pill px-4 py-3">Sign in</a>
+                    <a href="{% url 'user_register' %}" class="btn btn-light">Create account</a>
+                    <a href="{% url 'user_login' %}" class="btn btn-outline-light">Sign in</a>
                 {% endif %}
             </div>
         </div>

@@ -51,10 +51,10 @@
         }
         if (available) {
             root.classList.remove('is-offline');
-            statusText.textContent = 'Local AI · catalog-grounded';
+            statusText.textContent = 'Private concierge · catalog-grounded';
         } else {
             root.classList.add('is-offline');
-            statusText.textContent = 'Catalog fallback mode';
+            statusText.textContent = 'Catalog concierge · fallback mode';
         }
     }
 

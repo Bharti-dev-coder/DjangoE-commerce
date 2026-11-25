@@ -2,158 +2,169 @@
 {% load static store_tags %}
 
 {% block title %}{{ product.name }} | EuphoriaDJ{% endblock %}
-{% block meta_description %}{{ product.name }} in the EuphoriaDJ catalog. {{ product.description|truncatewords:20 }}{% endblock %}
+{% block meta_description %}{{ product.name }} in the EuphoriaDJ collection. {{ product.description|truncatewords:20 }}{% endblock %}
 
 {% block content %}
-<section class="page-banner">
+<section class="product-detail-page">
     <div class="container">
-        <nav aria-label="breadcrumb">
-            <ol class="breadcrumb breadcrumb-light mb-3">
+        <nav aria-label="Breadcrumb">
+            <ol class="breadcrumb">
                 <li class="breadcrumb-item"><a href="{% url 'home_page' %}">Home</a></li>
                 <li class="breadcrumb-item"><a href="{% url 'shop_page' %}">Shop</a></li>
                 {% if product.category %}
                     <li class="breadcrumb-item"><a href="{% url 'shop_page' %}?category={{ product.category.id }}">{{ product.category.name }}</a></li>
                 {% endif %}
-                <li class="breadcrumb-item active text-white" aria-current="page">{{ product.name }}</li>
+                <li class="breadcrumb-item active" aria-current="page">{{ product.name }}</li>
             </ol>
         </nav>
-        <h1 class="mb-2">Product details</h1>
-        <p class="mb-0 text-white-50">{{ product.name }}</p>
-    </div>
-</section>
 
-<section class="container-fluid py-5">
-    <div class="container py-3">
-        <div class="row g-5 align-items-start">
-            <div class="col-lg-6">
-                <div class="detail-image-wrap">
+        <div class="product-detail">
+            <div class="product-gallery">
+                <div class="product-gallery__stage">
+                    <span class="product-gallery__index">No. {{ product.id|stringformat:"03d" }}</span>
                     {% if product.image %}
-                        <img src="{{ product.image.url }}" class="detail-image" alt="{{ product.name }}">
+                        <img src="{{ product.image.url }}" class="product-gallery__image" alt="{{ product.name }}" loading="eager" decoding="async">
                     {% else %}
-                        <img src="{% static 'theme/img/product-1.png' %}" class="detail-image" alt="{{ product.name }}">
+                        <img src="{% static 'theme/img/product-1.png' %}" class="product-gallery__image" alt="{{ product.name }}" loading="eager" decoding="async">
                     {% endif %}
+                    <span class="product-gallery__note">The EuphoriaDJ edit</span>
+                </div>
+                <div class="product-gallery__caption">
+                    <span>Selected for its usefulness and form</span>
+                    <span>{{ product.category.name|default:"Considered objects" }}</span>
                 </div>
             </div>
-            <div class="col-lg-6">
-                <div class="d-flex flex-wrap align-items-center gap-2 mb-3">
-                    {% if product.category %}
-                        <a href="{% url 'shop_page' %}?category={{ product.category.id }}" class="badge bg-light text-primary text-decoration-none py-2 px-3">{{ product.category.name }}</a>
-                    {% else %}
-                        <span class="badge bg-light text-muted py-2 px-3">Uncategorized</span>
-                    {% endif %}
-                    {% if product.available %}
-                        <span class="badge bg-success py-2 px-3">Available</span>
-                    {% else %}
-                        <span class="badge bg-secondary py-2 px-3">Unavailable</span>
-                    {% endif %}
+
+            <div class="product-info">
+                <span class="eyebrow product-info__eyebrow">{% if product.category %}{{ product.category.name }}{% else %}The collection{% endif %}</span>
+                <h1>{{ product.name }}</h1>
+
+                <div class="product-info__price">
+                    {{ product.price|money }}
+                    <span class="product-availability{% if not product.available %} is-unavailable{% endif %}">
+                        {% if product.available %}Available to order{% else %}Currently unavailable{% endif %}
+                    </span>
                 </div>
-                <h2 class="display-5 mb-3">{{ product.name }}</h2>
-                <p class="detail-price mb-3">{{ product.price|money }}</p>
-                <p class="text-muted mb-4">
+
+                <div class="product-description">
                     {% if product.description %}
                         {{ product.description|linebreaksbr }}
                     {% else %}
-                        No description has been added for this product yet.
+                        <p>This object is part of the EuphoriaDJ collection. Full details are being prepared; please ask the concierge if you would like to know more.</p>
                     {% endif %}
-                </p>
+                </div>
 
-                <div class="border-top border-bottom py-4 mb-4">
+                <div class="product-form">
                     {% if user.is_authenticated %}
-                        <form method="post" action="{% url 'add_cart' product.id %}" class="row g-3 align-items-end">
+                        <form method="post" action="{% url 'add_cart' product.id %}">
                             {% csrf_token %}
                             <input type="hidden" name="next" value="{{ request.path }}">
                             <input type="hidden" name="source" value="product_detail">
-                            <div class="col-sm-5">
-                                <label for="detail-quantity" class="form-label fw-semibold">Quantity</label>
-                                <div class="input-group quantity" style="width: 140px;">
-                                    <div class="input-group-btn">
-                                        <button type="button" class="btn btn-sm btn-minus rounded-circle bg-light border" aria-label="Decrease quantity"><i class="fa fa-minus"></i></button>
-                                    </div>
-                                    <input id="detail-quantity" type="number" name="quantity" value="1" min="1" max="5" inputmode="numeric" class="form-control form-control-sm text-center border-0" aria-label="Quantity">
-                                    <div class="input-group-btn">
-                                        <button type="button" class="btn btn-sm btn-plus rounded-circle bg-light border" aria-label="Increase quantity"><i class="fa fa-plus"></i></button>
-                                    </div>
+                            <div class="product-form__row">
+                                <div class="quantity" data-quantity>
+                                    <button type="button" data-quantity-step="-1" aria-label="Decrease quantity"><i class="fas fa-minus" aria-hidden="true"></i></button>
+                                    <input id="detail-quantity" type="number" name="quantity" value="1" min="1" max="5" inputmode="numeric" aria-label="Quantity">
+                                    <button type="button" data-quantity-step="1" aria-label="Increase quantity"><i class="fas fa-plus" aria-hidden="true"></i></button>
                                 </div>
-                                <p class="small text-muted mb-0 mt-2">Maximum 5 per product.</p>
-                            </div>
-                            <div class="col-sm-7 d-flex flex-wrap gap-2">
-                                <button type="submit" class="btn btn-primary rounded-pill py-3 px-4">
-                                    <i class="fas fa-shopping-cart me-2"></i>Add to cart
+                                <button type="submit" class="btn btn-primary btn-add" {% if not product.available %}disabled{% endif %}>
+                                    {% if product.available %}Add to cart <i class="fas fa-arrow-right" aria-hidden="true"></i>{% else %}Unavailable{% endif %}
                                 </button>
-                                {% if favorite %}
-                                    <button type="submit" form="remove-favorite-form" class="btn btn-outline-danger rounded-pill py-3 px-4">
-                                        <i class="fas fa-heart me-2"></i>Remove favorite
-                                    </button>
-                                {% else %}
-                                    <button type="submit" form="add-favorite-form" class="btn btn-outline-primary rounded-pill py-3 px-4">
-                                        <i class="far fa-heart me-2"></i>Save favorite
-                                    </button>
-                                {% endif %}
                             </div>
+                            <p class="product-form__note"><i class="fas fa-lock" aria-hidden="true"></i>Maximum 5 per object. Secure checkout and private account.</p>
                         </form>
-                        {% if favorite %}
-                            <form id="remove-favorite-form" method="post" action="{% url 'remove_favorite' favorite.id %}" class="d-none">
-                                {% csrf_token %}
-                                <input type="hidden" name="next" value="{{ request.path }}">
-                            </form>
-                        {% else %}
-                            <form id="add-favorite-form" method="post" action="{% url 'add_favorite' product.id %}" class="d-none">
-                                {% csrf_token %}
-                                <input type="hidden" name="next" value="{{ request.path }}">
-                            </form>
-                        {% endif %}
+
+                        <div class="product-secondary-actions">
+                            {% if favorite %}
+                                <form id="remove-favorite-form" method="post" action="{% url 'remove_favorite' favorite.id %}" class="favorite-form">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="next" value="{{ request.path }}">
+                                    <button type="submit" class="secondary-action"><i class="fas fa-heart" aria-hidden="true"></i> Saved to favorites</button>
+                                </form>
+                            {% else %}
+                                <form id="add-favorite-form" method="post" action="{% url 'add_favorite' product.id %}" class="favorite-form">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="next" value="{{ request.path }}">
+                                    <button type="submit" class="secondary-action"><i class="far fa-heart" aria-hidden="true"></i> Save to favorites</button>
+                                </form>
+                            {% endif %}
+                            <button type="button" class="secondary-action" data-ai-open data-ai-prompt="Tell me about {{ product.name }} and whether it fits my needs">
+                                <i class="fas fa-comments" aria-hidden="true"></i> Ask the concierge
+                            </button>
+                        </div>
                     {% else %}
-                        <div class="alert alert-light border mb-0">
-                            <h3 class="h6 mb-2"><i class="fas fa-lock text-primary me-2"></i>Sign in to use the cart and favorites</h3>
-                            <p class="text-muted small mb-3">Your favorites and cart are private to your account.</p>
-                            <a href="{% url 'user_login' %}?next={{ request.path|urlencode }}" class="btn btn-primary rounded-pill px-4">Sign in</a>
-                            <a href="{% url 'user_register' %}" class="btn btn-outline-primary rounded-pill px-4">Create account</a>
+                        <div class="surface">
+                            <h3 class="mb-2">Sign in to add this object.</h3>
+                            <p>Your bag and favorites are private to your account.</p>
+                            <div class="d-flex flex-wrap gap-2">
+                                <a href="{% url 'user_login' %}?next={{ request.path|urlencode }}" class="btn btn-primary">Sign in</a>
+                                <a href="{% url 'user_register' %}" class="btn btn-outline-primary">Create account</a>
+                            </div>
                         </div>
                     {% endif %}
                 </div>
 
-                <div class="d-flex flex-wrap gap-2 mb-4">
-                    <a href="{% url 'shop_page' %}" class="btn btn-outline-secondary rounded-pill px-4">
-                        <i class="fas fa-arrow-left me-2"></i>Continue shopping
-                    </a>
-                    {% if product.category %}
-                        <a href="{% url 'shop_page' %}?category={{ product.category.id }}" class="btn btn-outline-primary rounded-pill px-4">
-                            <i class="fas fa-layer-group me-2"></i>More in {{ product.category.name }}
-                        </a>
-                    {% endif %}
-                    <button type="button" class="btn btn-outline-primary rounded-pill px-4"
-                            data-ai-open data-ai-prompt="Tell me about {{ product.name }} and whether it fits my needs">
-                        <i class="fas fa-comments me-2"></i>Ask about this product
-                    </button>
+                <div class="assurance-list">
+                    <div class="assurance-item">
+                        <i class="fas fa-box" aria-hidden="true"></i>
+                        <strong>Considered delivery</strong>
+                        <span>Options and charges are confirmed at checkout.</span>
+                    </div>
+                    <div class="assurance-item">
+                        <i class="fas fa-shield-alt" aria-hidden="true"></i>
+                        <strong>Protected order</strong>
+                        <span>Secure payment and order history in your account.</span>
+                    </div>
+                    <div class="assurance-item">
+                        <i class="fas fa-concierge-bell" aria-hidden="true"></i>
+                        <strong>Personal assistance</strong>
+                        <span>Ask the concierge for help before you decide.</span>
+                    </div>
                 </div>
 
-                <dl class="row small text-muted mb-0">
-                    <dt class="col-sm-4">Catalog ID</dt>
-                    <dd class="col-sm-8">#{{ product.id }}</dd>
-                    <dt class="col-sm-4">Availability</dt>
-                    <dd class="col-sm-8">{% if product.available %}In stock and available to order{% else %}Currently unavailable{% endif %}</dd>
-                    <dt class="col-sm-4">Listed</dt>
-                    <dd class="col-sm-8">{{ product.created_at|date:"M j, Y" }}</dd>
-                    <dt class="col-sm-4">Category</dt>
-                    <dd class="col-sm-8">{% if product.category %}{{ product.category.name }}{% else %}Uncategorized{% endif %}</dd>
-                </dl>
+                <div class="detail-accordion">
+                    <details open>
+                        <summary>Object details <i class="fas fa-plus" aria-hidden="true"></i></summary>
+                        <div class="detail-accordion__body">
+                            <dl class="product-meta-list">
+                                <div><dt>Catalog ID</dt><dd>#{{ product.id }}</dd></div>
+                                <div><dt>Category</dt><dd>{% if product.category %}{{ product.category.name }}{% else %}Uncategorized{% endif %}</dd></div>
+                                <div><dt>Availability</dt><dd>{% if product.available %}In stock and available to order{% else %}Currently unavailable{% endif %}</dd></div>
+                                <div><dt>Listed</dt><dd>{{ product.created_at|date:"M j, Y" }}</dd></div>
+                            </dl>
+                        </div>
+                    </details>
+                    <details>
+                        <summary>Delivery &amp; returns <i class="fas fa-plus" aria-hidden="true"></i></summary>
+                        <div class="detail-accordion__body">
+                            <p>Delivery options and any applicable charges are shown clearly at checkout. Orders remain visible in your account so you can follow their progress.</p>
+                        </div>
+                    </details>
+                    <details>
+                        <summary>Care &amp; support <i class="fas fa-plus" aria-hidden="true"></i></summary>
+                        <div class="detail-accordion__body">
+                            <p>For help with an object, your account or an existing order, visit <a href="{% url 'contact_page' %}" class="text-decoration-underline">client services</a>. We will be glad to assist.</p>
+                        </div>
+                    </details>
+                </div>
+
+                <div class="mt-4">
+                    <a href="{% url 'shop_page' %}" class="text-link">Continue shopping <i class="fas fa-arrow-right" aria-hidden="true"></i></a>
+                </div>
             </div>
         </div>
 
         {% if related_products %}
-            <div class="mt-5 pt-4 border-top">
-                <div class="d-flex align-items-end justify-content-between gap-3 mb-4">
+            <div class="related-section">
+                <div class="section-head">
                     <div>
-                        <span class="section-kicker">More like this</span>
-                        <h2 class="section-heading mb-0">Related products</h2>
+                        <span class="section-kicker">In the same spirit</span>
+                        <h2 class="section-heading">You may also consider</h2>
                     </div>
-                    <a href="{% url 'shop_page' %}{% if product.category %}?category={{ product.category.id }}{% endif %}" class="btn btn-outline-primary rounded-pill px-4">View category</a>
+                    <a href="{% url 'shop_page' %}{% if product.category %}?category={{ product.category.id }}{% endif %}" class="text-link">View the collection <i class="fas fa-arrow-right" aria-hidden="true"></i></a>
                 </div>
-                <div class="row g-4 product">
+                <div class="product-grid product-grid--related">
                     {% for related in related_products %}
-                        <div class="col-sm-6 col-lg-4 col-xl-3">
-                            {% include "partials/product_card.html" with product=related %}
-                        </div>
+                        {% include "partials/product_card.html" with product=related %}
                     {% endfor %}
                 </div>
             </div>

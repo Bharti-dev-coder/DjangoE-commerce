@@ -1,41 +1,94 @@
 {% extends "app.html" %}
 
 {% block title %}Employee directory | EuphoriaDJ{% endblock %}
+{% block body_class %}page-employees{% endblock %}
 
 {% block content %}
-<section class="page-banner">
+<section class="page-intro">
     <div class="container">
-        <nav aria-label="breadcrumb">
-            <ol class="breadcrumb breadcrumb-light mb-3">
+        <nav aria-label="Breadcrumb">
+            <ol class="breadcrumb">
                 <li class="breadcrumb-item"><a href="{% url 'home_page' %}">Home</a></li>
-                <li class="breadcrumb-item active text-white" aria-current="page">Employees</li>
+                <li class="breadcrumb-item active" aria-current="page">Employee directory</li>
             </ol>
         </nav>
-        <h1 class="mb-2">Employee directory</h1>
-        <p class="mb-0 text-white-50">Signed in as {{ user.first_name|default:user.username }}.</p>
+        <div class="page-intro__row">
+            <div>
+                <span class="section-kicker">Internal records</span>
+                <h1>Employee directory.</h1>
+                <p>A private register of team records, kept for reference and administration.</p>
+            </div>
+            <p class="page-intro__aside">Signed in as {{ user.first_name|default:user.username }}.</p>
+        </div>
     </div>
 </section>
 
-<section class="container-fluid py-5">
-    <div class="container py-3">
-        <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
-            <p class="text-muted mb-0">{{ emps|length }} employee record{{ emps|length|pluralize }} in the database.</p>
-            <a href="{% url 'create_employee' %}" class="btn btn-primary rounded-pill px-4"><i class="fas fa-user-plus me-2"></i>Create employee</a>
+<section class="orders-page">
+    <div class="container">
+        <div class="favorites-toolbar">
+            <p>{{ emps|length }} employee record{{ emps|length|pluralize }} in the database</p>
+            <a href="{% url 'create_employee' %}" class="btn btn-sm btn-primary">Create employee <i class="fas fa-arrow-right" aria-hidden="true"></i></a>
         </div>
 
-        <div class="employee-table-wrap bg-white">
+        <div class="employee-list d-lg-none">
+            {% for emp in emps %}
+                <article class="employee-card">
+                    <div class="employee-card__top">
+                        <div>
+                            <span class="employee-card__id">Record #{{ emp.id }}</span>
+                            <h2>{{ emp.emp_name }}</h2>
+                            <p>{{ emp.get_emp_dept_display }}</p>
+                        </div>
+                    </div>
+                    <dl class="employee-card__details">
+                        <div class="employee-card__details-wide">
+                            <dt>Email</dt>
+                            <dd><a href="mailto:{{ emp.emp_email }}">{{ emp.emp_email }}</a></dd>
+                        </div>
+                        <div>
+                            <dt>Mobile</dt>
+                            <dd>{{ emp.emp_mobile|default:"—" }}</dd>
+                        </div>
+                        <div>
+                            <dt>Date of birth</dt>
+                            <dd>{{ emp.emp_dob|date:"M j, Y"|default:"—" }}</dd>
+                        </div>
+                        <div>
+                            <dt>Joined</dt>
+                            <dd>{{ emp.emp_joining_date|date:"M j, Y" }}</dd>
+                        </div>
+                        <div class="employee-card__details-wide">
+                            <dt>Address</dt>
+                            <dd>{{ emp.emp_address|default:"—" }}</dd>
+                        </div>
+                    </dl>
+                    <div class="employee-card__actions">
+                        <a href="{% url 'update_employee' emp.id %}" class="btn btn-sm btn-outline-primary">Edit</a>
+                        <a href="{% url 'delete_employee' emp.id %}" class="btn btn-sm btn-outline-secondary" onclick="return confirm('Delete this employee record?');">Delete</a>
+                    </div>
+                </article>
+            {% empty %}
+                <div class="empty-state">
+                    <span class="empty-state__mark"><i class="fas fa-users" aria-hidden="true"></i></span>
+                    <h2>No employee records.</h2>
+                    <p>Create the first record to begin the directory.</p>
+                </div>
+            {% endfor %}
+        </div>
+
+        <div class="employee-table-wrap mt-4 d-none d-lg-block">
             <div class="table-responsive">
-                <table class="table table-hover align-middle mb-0">
-                    <thead class="table-light">
+                <table class="table align-middle mb-0">
+                    <thead>
                         <tr>
                             <th scope="col">ID</th>
                             <th scope="col">Name</th>
                             <th scope="col">Email</th>
-                            <th scope="col">Phone</th>
+                            <th scope="col" class="d-none d-xl-table-cell">Phone</th>
                             <th scope="col">Department</th>
-                            <th scope="col">Date of birth</th>
-                            <th scope="col">Address</th>
-                            <th scope="col">Joined</th>
+                            <th scope="col" class="d-none d-lg-table-cell">Date of birth</th>
+                            <th scope="col" class="d-none d-xl-table-cell">Address</th>
+                            <th scope="col" class="d-none d-lg-table-cell">Joined</th>
                             <th scope="col" class="text-end">Actions</th>
                         </tr>
                     </thead>
@@ -44,15 +97,15 @@
                             <tr>
                                 <td>{{ emp.id }}</td>
                                 <td class="fw-semibold">{{ emp.emp_name }}</td>
-                                <td><a href="mailto:{{ emp.emp_email }}" class="text-decoration-none">{{ emp.emp_email }}</a></td>
-                                <td>{{ emp.emp_mobile|default:"—" }}</td>
+                                <td><a href="mailto:{{ emp.emp_email }}">{{ emp.emp_email }}</a></td>
+                                <td class="d-none d-xl-table-cell">{{ emp.emp_mobile|default:"—" }}</td>
                                 <td>{{ emp.get_emp_dept_display }}</td>
-                                <td>{{ emp.emp_dob|date:"M j, Y"|default:"—" }}</td>
-                                <td class="small">{{ emp.emp_address|default:"—" }}</td>
-                                <td class="small">{{ emp.emp_joining_date|date:"M j, Y" }}</td>
+                                <td class="d-none d-lg-table-cell">{{ emp.emp_dob|date:"M j, Y"|default:"—" }}</td>
+                                <td class="small d-none d-xl-table-cell">{{ emp.emp_address|default:"—" }}</td>
+                                <td class="small d-none d-lg-table-cell">{{ emp.emp_joining_date|date:"M j, Y" }}</td>
                                 <td class="text-end text-nowrap">
-                                    <a href="{% url 'update_employee' emp.id %}" class="btn btn-sm btn-outline-primary rounded-pill">Edit</a>
-                                    <a href="{% url 'delete_employee' emp.id %}" class="btn btn-sm btn-outline-danger rounded-pill" onclick="return confirm('Delete this employee record?');">Delete</a>
+                                    <a href="{% url 'update_employee' emp.id %}" class="btn btn-sm btn-outline-primary">Edit</a>
+                                    <a href="{% url 'delete_employee' emp.id %}" class="btn btn-sm btn-outline-secondary" onclick="return confirm('Delete this employee record?');">Delete</a>
                                 </td>
                             </tr>
                         {% empty %}

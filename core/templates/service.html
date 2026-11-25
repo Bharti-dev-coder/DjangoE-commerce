@@ -1,70 +1,91 @@
 {% extends "app.html" %}
 {% load static %}
 
-{% block title %}Service | EuphoriaDJ{% endblock %}
-{% block meta_description %}How the EuphoriaDJ storefront works, including accounts, favorites, cart, checkout, and order history.{% endblock %}
+{% block title %}Service &amp; care | EuphoriaDJ{% endblock %}
+{% block meta_description %}How the EuphoriaDJ storefront works: accounts, favorites, bag, checkout, payments and order history.{% endblock %}
 
 {% block content %}
-<section class="page-banner">
+<section class="page-intro">
     <div class="container">
-        <nav aria-label="breadcrumb">
-            <ol class="breadcrumb breadcrumb-light mb-3">
+        <nav aria-label="Breadcrumb">
+            <ol class="breadcrumb">
                 <li class="breadcrumb-item"><a href="{% url 'home_page' %}">Home</a></li>
-                <li class="breadcrumb-item active text-white" aria-current="page">Service</li>
+                <li class="breadcrumb-item active" aria-current="page">Service &amp; care</li>
             </ol>
         </nav>
-        <h1 class="mb-2">Store information</h1>
-        <p class="mb-0 text-white-50">What the storefront supports today, and where to go next.</p>
+        <div class="page-intro__row">
+            <div>
+                <span class="section-kicker">At your service</span>
+                <h1>Service &amp; care.</h1>
+                <p>Everything you need to know about choosing, saving, buying and following your objects.</p>
+            </div>
+            <p class="page-intro__aside">A considered storefront should feel effortless. Here is how the experience works, from first look to order history.</p>
+        </div>
     </div>
 </section>
 
-<section class="container py-5">
-    <div class="row g-4 py-3">
-        <div class="col-md-6 col-lg-4">
-            <div class="border rounded-4 p-4 h-100">
-                <span class="category-icon"><i class="fas fa-search"></i></span>
-                <h2 class="h5">Catalog search and filters</h2>
-                <p class="text-muted mb-0">Use the shop page to search product names and descriptions, filter by category and price, sort the results, and move through pages.</p>
+<section class="section section--tight">
+    <div class="container">
+        <div class="service-grid">
+            <div class="service-card">
+                <span class="service-card__index">01</span>
+                <i class="fas fa-search" aria-hidden="true"></i>
+                <h2>Discover</h2>
+                <p>Search names and descriptions, filter by category and price, sort the results and move through pages. The shop is drawn from the live catalogue.</p>
             </div>
-        </div>
-        <div class="col-md-6 col-lg-4">
-            <div class="border rounded-4 p-4 h-100">
-                <span class="category-icon"><i class="fas fa-heart"></i></span>
-                <h2 class="h5">Favorites</h2>
-                <p class="text-muted mb-0">Signed-in shoppers can add or remove products from a private favorites list. Duplicate entries are prevented by the database.</p>
+            <div class="service-card">
+                <span class="service-card__index">02</span>
+                <i class="far fa-heart" aria-hidden="true"></i>
+                <h2>Save</h2>
+                <p>Signed-in clients can add or remove objects from a private favorites list. Duplicate entries are prevented by the database.</p>
             </div>
-        </div>
-        <div class="col-md-6 col-lg-4">
-            <div class="border rounded-4 p-4 h-100">
-                <span class="category-icon"><i class="fas fa-shopping-cart"></i></span>
-                <h2 class="h5">Cart and coupons</h2>
-                <p class="text-muted mb-0">Add products in quantities from 1 to 5, apply one coupon, and review the subtotal, discount, shipping, tax, and final payable amount. Prices come from the database and totals use Decimal values.</p>
+            <div class="service-card">
+                <span class="service-card__index">03</span>
+                <i class="fas fa-shopping-bag" aria-hidden="true"></i>
+                <h2>Collect</h2>
+                <p>Add objects in quantities from 1 to 5, apply one coupon, and review the subtotal, discount, shipping, tax and final payable amount.</p>
             </div>
-        </div>
-        <div class="col-md-6 col-lg-4">
-            <div class="border rounded-4 p-4 h-100">
-                <span class="category-icon"><i class="fas fa-user-shield"></i></span>
-                <h2 class="h5">Accounts</h2>
-                <p class="text-muted mb-0">Registration validates required fields and passwords. A welcome email is attempted after the account is created; an email failure does not remove the account.</p>
+            <div class="service-card">
+                <span class="service-card__index">04</span>
+                <i class="fas fa-user-shield" aria-hidden="true"></i>
+                <h2>Account</h2>
+                <p>Registration validates required fields and passwords. A welcome email is attempted after your account is created; an email failure never removes it.</p>
             </div>
-        </div>
-        <div class="col-md-6 col-lg-4">
-            <div class="border rounded-4 p-4 h-100">
-                <span class="category-icon"><i class="fas fa-lock"></i></span>
-                <h2 class="h5">Protected actions</h2>
-                <p class="text-muted mb-0">Cart and favorite changes use POST requests with CSRF protection. Visitors are redirected to the existing sign-in page and returned safely afterward.</p>
+            <div class="service-card">
+                <span class="service-card__index">05</span>
+                <i class="fas fa-lock" aria-hidden="true"></i>
+                <h2>Protected</h2>
+                <p>Bag and favorite changes use POST requests with CSRF protection. Visitors are redirected to sign in and returned safely afterwards.</p>
             </div>
-        </div>
-        <div class="col-md-6 col-lg-4">
-            <div class="border rounded-4 p-4 h-100">
-                <span class="category-icon"><i class="fas fa-box"></i></span>
-                <h2 class="h5">Checkout and orders</h2>
-                <p class="text-muted mb-0">Checkout supports saved delivery addresses, Cash on Delivery, and Razorpay online payments when gateway credentials are configured. Customers can view private order history and payment status after ordering.</p>
+            <div class="service-card">
+                <span class="service-card__index">06</span>
+                <i class="fas fa-truck" aria-hidden="true"></i>
+                <h2>Order</h2>
+                <p>Checkout supports saved delivery addresses, Cash on Delivery and Razorpay when gateway credentials are configured. Payment verification happens on the server.</p>
             </div>
         </div>
     </div>
-    <div class="text-center mt-4">
-        <a href="{% url 'contact_page' %}" class="btn btn-primary rounded-pill px-4">Contact support</a>
+</section>
+
+<section class="section section--ivory">
+    <div class="container">
+        <div class="content-grid">
+            <div>
+                <span class="section-kicker">A note on payment</span>
+                <h2>Secure, verified, transparent.</h2>
+                <p>Cash on Delivery keeps payment pending until collection. For online payment, Razorpay opens a secure window; EuphoriaDJ marks an order paid only after a server-side signature check. An order can be retried safely if a payment window is closed.</p>
+                <p>Order totals are always recalculated on the server before an order is created, so what you review is what is recorded.</p>
+            </div>
+            <div class="contact-panel">
+                <span class="section-kicker">Need something else?</span>
+                <h3>Speak with client services.</h3>
+                <p>For help with an account, an object or an existing order, we are one message away.</p>
+                <div class="d-flex flex-wrap gap-2 mt-3">
+                    <a href="{% url 'contact_page' %}" class="btn btn-primary">Contact us</a>
+                    <a href="{% url 'shop_page' %}" class="btn btn-outline-primary">Browse the collection</a>
+                </div>
+            </div>
+        </div>
     </div>
 </section>
 {% endblock %}

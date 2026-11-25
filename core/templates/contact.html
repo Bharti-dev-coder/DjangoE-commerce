@@ -1,68 +1,73 @@
 {% extends "app.html" %}
 {% load static %}
 
-{% block title %}Contact | EuphoriaDJ{% endblock %}
-{% block meta_description %}Contact the EuphoriaDJ store team.{% endblock %}
+{% block title %}Client services | EuphoriaDJ{% endblock %}
+{% block meta_description %}Contact the EuphoriaDJ team for help with the catalogue, your account, a bag or an order.{% endblock %}
 
 {% block content %}
-<section class="page-banner">
+<section class="page-intro">
     <div class="container">
-        <nav aria-label="breadcrumb">
-            <ol class="breadcrumb breadcrumb-light mb-3">
+        <nav aria-label="Breadcrumb">
+            <ol class="breadcrumb">
                 <li class="breadcrumb-item"><a href="{% url 'home_page' %}">Home</a></li>
-                <li class="breadcrumb-item active text-white" aria-current="page">Contact</li>
+                <li class="breadcrumb-item active" aria-current="page">Client services</li>
             </ol>
         </nav>
-        <h1 class="mb-2">Contact and support</h1>
-        <p class="mb-0 text-white-50">Questions about the catalog, your account, or the storefront?</p>
+        <div class="page-intro__row">
+            <div>
+                <span class="section-kicker">We are here to help</span>
+                <h1>Client services.</h1>
+                <p>Questions about the collection, your account, or an order already placed? We would be glad to assist.</p>
+            </div>
+            <p class="page-intro__aside">Thoughtful help, without unnecessary steps. Include your account email and as much detail as you can.</p>
+        </div>
     </div>
 </section>
 
-<section class="container py-5">
-    <div class="row g-5 py-3">
-        <div class="col-lg-5">
-            <span class="section-kicker">Get in touch</span>
-            <h2 class="section-heading mb-3">We’re here to help.</h2>
-            <p class="text-muted mb-4">Use the support email below for account, catalog, or storefront questions. Include the email address on your account and a short description of the issue.</p>
-            <div class="border rounded-4 p-4 mb-4">
-                <h3 class="h6 text-uppercase text-muted mb-3">Support email</h3>
-                <a href="mailto:{{ store_profile.email|default:'support@euphoriasj.com' }}" class="h5 text-primary text-decoration-none">
-                    <i class="fas fa-envelope me-2"></i>{{ store_profile.email|default:"support@euphoriasj.com" }}
-                </a>
-                {% if store_profile.contact_number %}
-                    <p class="text-muted mb-0 mt-3"><i class="fas fa-phone me-2"></i>{{ store_profile.contact_number }}</p>
-                {% endif %}
-                {% if store_profile.full_address %}
-                    <p class="text-muted small mb-0 mt-3"><i class="fas fa-map-marker-alt me-2"></i>{{ store_profile.full_address }}</p>
-                {% endif %}
-            </div>
-            <div class="d-flex flex-wrap gap-2">
-                <a href="{% url 'shop_page' %}" class="btn btn-primary rounded-pill px-4">Browse the shop</a>
-                <a href="{% url 'user_login' %}" class="btn btn-outline-primary rounded-pill px-4">Sign in</a>
-            </div>
-        </div>
-        <div class="col-lg-7">
-            <div class="bg-light rounded-4 p-4 p-lg-5 h-100">
-                <h2 class="h4 mb-4">Before you write</h2>
-                <div class="d-flex gap-3 mb-4">
-                    <span class="category-icon mb-0 flex-shrink-0"><i class="fas fa-user"></i></span>
-                    <div>
-                        <h3 class="h6 mb-1">Account questions</h3>
-                        <p class="text-muted small mb-0">Include the email address you registered with. Passwords are never displayed or sent by email.</p>
-                    </div>
+<section class="section section--tight">
+    <div class="container">
+        <div class="content-grid">
+            <div class="contact-panel">
+                <span class="section-kicker">Write to us</span>
+                <h2>How to reach us.</h2>
+                <p>Use the support email below for account, catalogue or storefront questions. Include the email address associated with your account and a short description of the issue.</p>
+                <ul class="contact-list">
+                    <li>
+                        <span>Email</span>
+                        <a href="mailto:{{ store_profile.email|default:'support@euphoriasj.com' }}">{{ store_profile.email|default:"support@euphoriasj.com" }}</a>
+                    </li>
+                    {% if store_profile.contact_number %}
+                        <li><span>Telephone</span>{{ store_profile.contact_number }}</li>
+                    {% endif %}
+                    {% if store_profile.full_address %}
+                        <li><span>Studio</span>{{ store_profile.full_address }}</li>
+                    {% endif %}
+                    <li><span>Response time</span>We aim to reply within one working day.</li>
+                </ul>
+                <div class="d-flex flex-wrap gap-2 mt-4">
+                    <a href="{% url 'shop_page' %}" class="btn btn-primary">Browse the collection</a>
+                    <button type="button" class="btn btn-outline-primary" data-ai-open data-ai-prompt="I need help with my account or order">Ask the concierge</button>
                 </div>
-                <div class="d-flex gap-3 mb-4">
-                    <span class="category-icon mb-0 flex-shrink-0"><i class="fas fa-box"></i></span>
-                    <div>
-                        <h3 class="h6 mb-1">Product questions</h3>
-                        <p class="text-muted small mb-0">Include the product name and the catalog ID shown on its detail page.</p>
+            </div>
+
+            <div>
+                <span class="section-kicker">Before you write</span>
+                <h2>It helps to include.</h2>
+                <div class="values-grid" style="grid-template-columns: 1fr; border-top: 0; border-left: 0;">
+                    <div class="value-item" style="border-left: 1px solid var(--line);">
+                        <i class="far fa-user" aria-hidden="true"></i>
+                        <h3>Account questions</h3>
+                        <p>Include the email address you registered with. Passwords are never displayed or sent by email.</p>
                     </div>
-                </div>
-                <div class="d-flex gap-3">
-                    <span class="category-icon mb-0 flex-shrink-0"><i class="fas fa-shopping-cart"></i></span>
-                    <div>
-                        <h3 class="h6 mb-1">Cart and order questions</h3>
-                        <p class="text-muted small mb-0">Cart contents and order history are visible after signing in. Checkout supports Cash on Delivery and Razorpay payments verified on the server.</p>
+                    <div class="value-item" style="border-left: 1px solid var(--line);">
+                        <i class="fas fa-box" aria-hidden="true"></i>
+                        <h3>Object questions</h3>
+                        <p>Include the object name and the catalogue ID shown on its detail page so we can find it quickly.</p>
+                    </div>
+                    <div class="value-item" style="border-left: 1px solid var(--line);">
+                        <i class="fas fa-shopping-bag" aria-hidden="true"></i>
+                        <h3>Bag &amp; order questions</h3>
+                        <p>Your bag and order history are visible once signed in. Checkout supports Cash on Delivery and Razorpay payments verified on the server.</p>
                     </div>
                 </div>
             </div>

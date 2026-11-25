@@ -1,85 +1,94 @@
 {% load static store_tags %}
-<div class="product-item store-product rounded h-100 d-flex flex-column">
-    <div class="product-item-inner border rounded flex-grow-1 d-flex flex-column">
-        <div class="product-item-inner-item">
-            <a href="{% url 'product_detail' product.slug %}" class="d-block">
-                {% if product.image %}
-                    <img src="{{ product.image.url }}" class="product-card-image" alt="{{ product.name }}">
-                {% else %}
-                    <img src="{% static 'theme/img/product-1.png' %}" class="product-card-image" alt="{{ product.name }}">
-                {% endif %}
-            </a>
-            <div class="product-details">
-                <a href="{% url 'product_detail' product.slug %}" tabindex="-1" aria-hidden="true" title="View product details"><i class="fa fa-eye fa-1x"></i></a>
-            </div>
-        </div>
-        <div class="text-center rounded-bottom p-4 flex-grow-1">
-            {% if product.category %}
-                <a href="{% url 'shop_page' %}?category={{ product.category.id }}" class="d-block mb-2 text-muted small text-decoration-none">{{ product.category.name }}</a>
+<article class="product-card">
+    <div class="product-card__media">
+        <a href="{% url 'product_detail' product.slug %}" aria-label="View product details for {{ product.name }}">
+            {% if product.image %}
+                <img src="{{ product.image.url }}" class="product-card__image" alt="{{ product.name }}" loading="lazy" decoding="async">
             {% else %}
-                <span class="d-block mb-2 text-muted small">Uncategorized</span>
+                <img src="{% static 'theme/img/product-1.png' %}" class="product-card__image" alt="{{ product.name }}" loading="lazy" decoding="async">
             {% endif %}
-            <a href="{% url 'product_detail' product.slug %}" class="product-card-title mb-2">{{ product.name }}</a>
-            {% if product.description %}
-                <p class="product-card-description text-muted small mb-2">{{ product.description|truncatewords:14 }}</p>
-            {% endif %}
-            <span class="text-primary fs-5 fw-bold">{{ product.price|money }}</span>
-        </div>
-    </div>
-    <div class="product-item-add border border-top-0 rounded-bottom text-center p-4 pt-3">
-        {% if user.is_authenticated %}
-            <form method="post" action="{% url 'add_cart' product.id %}">
-                {% csrf_token %}
-                <input type="hidden" name="quantity" value="1">
-                <input type="hidden" name="source" value="quick_add">
-                <input type="hidden" name="next" value="{{ request.get_full_path }}">
-                <button type="submit" class="btn btn-primary border-secondary rounded-pill py-2 px-4 w-100">
-                    <i class="fas fa-shopping-cart me-2"></i>Add to cart
-                </button>
-            </form>
-        {% else %}
-            <a href="{% url 'user_login' %}?next={{ request.path|urlencode }}" class="btn btn-primary border-secondary rounded-pill py-2 px-4 w-100">
-                <i class="fas fa-shopping-cart me-2"></i>Sign in to add to cart
-            </a>
-        {% endif %}
-        <div class="d-flex justify-content-between align-items-center mt-3 product-card-actions">
-            <a href="{% url 'product_detail' product.slug %}" class="small text-muted text-decoration-none">View details</a>
-            <div class="d-flex align-items-center gap-2">
-                <a href="{% url 'product_detail' product.slug %}" class="text-primary product-quick-view" title="View product details" aria-label="View product details for {{ product.name }}">
-                    <span class="rounded-circle btn-sm-square border d-inline-flex align-items-center justify-content-center"><i class="fa fa-eye" aria-hidden="true"></i></span>
-                </a>
-                {% if user.is_authenticated %}
-                    {% if favorite_id %}
-                        <form method="post" action="{% url 'remove_favorite' favorite_id %}">
-                            {% csrf_token %}
-                            <input type="hidden" name="next" value="{{ request.get_full_path }}">
-                            <button type="submit" class="btn btn-link p-0 text-danger" title="Remove from favorites" aria-label="Remove {{ product.name }} from favorites">
-                                <span class="rounded-circle btn-sm-square border d-inline-flex align-items-center justify-content-center"><i class="fas fa-heart" aria-hidden="true"></i></span>
-                            </button>
-                        </form>
-                    {% elif product.user_favorite_id %}
-                        <form method="post" action="{% url 'remove_favorite' product.user_favorite_id %}">
-                            {% csrf_token %}
-                            <input type="hidden" name="next" value="{{ request.get_full_path }}">
-                            <button type="submit" class="btn btn-link p-0 text-danger" title="Remove from favorites" aria-label="Remove {{ product.name }} from favorites">
-                                <span class="rounded-circle btn-sm-square border d-inline-flex align-items-center justify-content-center"><i class="fas fa-heart" aria-hidden="true"></i></span>
-                            </button>
-                        </form>
-                    {% else %}
-                        <form method="post" action="{% url 'add_favorite' product.id %}">
-                            {% csrf_token %}
-                            <input type="hidden" name="next" value="{{ request.get_full_path }}">
-                            <button type="submit" class="btn btn-link p-0 text-primary" title="Add to favorites" aria-label="Add {{ product.name }} to favorites">
-                                <span class="rounded-circle btn-sm-square border d-inline-flex align-items-center justify-content-center"><i class="far fa-heart" aria-hidden="true"></i></span>
-                            </button>
-                        </form>
-                    {% endif %}
+        </a>
+
+        <span class="product-card__tag">E / {{ product.id|stringformat:"03d" }}</span>
+
+        <div class="product-card__wishlist">
+            {% if user.is_authenticated %}
+                {% if favorite_id %}
+                    <form method="post" action="{% url 'remove_favorite' favorite_id %}">
+                        {% csrf_token %}
+                        <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                        <button type="submit" class="favorite-toggle is-favorite" title="Remove from favorites" aria-label="Remove {{ product.name }} from favorites">
+                            <i class="fas fa-heart" aria-hidden="true"></i>
+                        </button>
+                    </form>
+                {% elif product.user_favorite_id %}
+                    <form method="post" action="{% url 'remove_favorite' product.user_favorite_id %}">
+                        {% csrf_token %}
+                        <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                        <button type="submit" class="favorite-toggle is-favorite" title="Remove from favorites" aria-label="Remove {{ product.name }} from favorites">
+                            <i class="fas fa-heart" aria-hidden="true"></i>
+                        </button>
+                    </form>
                 {% else %}
-                    <a href="{% url 'user_login' %}?next={{ request.path|urlencode }}" class="text-primary" title="Sign in to save favorites" aria-label="Sign in to save {{ product.name }}">
-                        <span class="rounded-circle btn-sm-square border d-inline-flex align-items-center justify-content-center"><i class="far fa-heart" aria-hidden="true"></i></span>
-                    </a>
+                    <form method="post" action="{% url 'add_favorite' product.id %}">
+                        {% csrf_token %}
+                        <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                        <button type="submit" class="favorite-toggle" title="Save to favorites" aria-label="Add {{ product.name }} to favorites">
+                            <i class="far fa-heart" aria-hidden="true"></i>
+                        </button>
+                    </form>
                 {% endif %}
-            </div>
+            {% else %}
+                <a href="{% url 'user_login' %}?next={{ request.path|urlencode }}" class="favorite-toggle" title="Sign in to save favorites" aria-label="Sign in to save {{ product.name }}">
+                    <i class="far fa-heart" aria-hidden="true"></i>
+                </a>
+            {% endif %}
+        </div>
+
+        <div class="product-card__quick">
+            {% if user.is_authenticated %}
+                <form method="post" action="{% url 'add_cart' product.id %}">
+                    {% csrf_token %}
+                    <input type="hidden" name="quantity" value="1">
+                    <input type="hidden" name="source" value="quick_add">
+                    <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                    <button type="submit" class="btn" {% if not product.available %}disabled{% endif %}>
+                        {% if product.available %}Add to cart <i class="fas fa-plus" aria-hidden="true"></i>{% else %}Unavailable{% endif %}
+                    </button>
+                </form>
+            {% else %}
+                <a href="{% url 'user_login' %}?next={{ request.path|urlencode }}" class="btn">
+                    Sign in to add to cart <i class="fas fa-arrow-right" aria-hidden="true"></i>
+                </a>
+            {% endif %}
         </div>
     </div>
-</div>
+
+    <div class="product-card__body">
+        <div class="product-card__meta">
+            {% if product.category %}
+                <a href="{% url 'shop_page' %}?category={{ product.category.id }}">{{ product.category.name }}</a>
+            {% else %}
+                <span>EuphoriaDJ</span>
+            {% endif %}
+            <span class="product-card__availability{% if not product.available %} is-unavailable{% endif %}">
+                {% if product.available %}Available{% else %}Sold out{% endif %}
+            </span>
+        </div>
+
+        <h3 class="product-card__title">
+            <a href="{% url 'product_detail' product.slug %}">{{ product.name }}</a>
+        </h3>
+
+        {% if product.description %}
+            <p class="product-card__description">{{ product.description|truncatewords:16 }}</p>
+        {% endif %}
+
+        <div class="product-card__footer">
+            <span class="product-card__price">{{ product.price|money }}</span>
+            <a href="{% url 'product_detail' product.slug %}" class="product-card__link">
+                View details <i class="fas fa-arrow-right" aria-hidden="true"></i>
+            </a>
+        </div>
+    </div>
+</article>

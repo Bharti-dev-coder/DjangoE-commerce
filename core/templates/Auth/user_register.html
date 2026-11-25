@@ -1,91 +1,92 @@
 {% extends "app.html" %}
 
-{% block title %}Create account | EuphoriaDJ{% endblock %}
-{% block meta_description %}Create a EuphoriaDJ account to save favorites and keep a private cart.{% endblock %}
+{% block title %}Create an account | EuphoriaDJ{% endblock %}
+{% block meta_description %}Create a EuphoriaDJ account to keep a private favorites list, a persistent bag and a record of your orders.{% endblock %}
+{% block body_class %}page-auth{% endblock %}
 
 {% block content %}
-<section class="container py-5">
-    <div class="row justify-content-center py-4">
-        <div class="col-xl-10">
-            <div class="auth-card row g-0">
-                <div class="col-lg-5 auth-aside p-4 p-lg-5 d-flex flex-column justify-content-between">
-                    <div>
-                        <span class="eyebrow text-white mb-3"><i class="fas fa-user-plus"></i>Join EuphoriaDJ</span>
-                        <h1 class="h2 text-white mb-3">Create your storefront account.</h1>
-                        <p class="text-white-50 mb-4">Save products to a private favorites list, keep a persistent cart, and return to the storefront with your account.</p>
-                    </div>
-                    <div class="rounded-3 p-3" style="background: rgba(255,255,255,.06);">
-                        <p class="text-white small mb-0"><i class="fas fa-shield-alt text-primary me-2"></i>Your password is validated and stored securely. A welcome email is attempted only after your account is created.</p>
-                    </div>
+<section class="auth-page">
+    <div class="container">
+        <div class="auth-layout">
+            <div class="auth-visual">
+                <div>
+                    <span class="eyebrow">Join the house</span>
+                    <h1>Begin your collection.</h1>
+                    <p>Create an account to keep a private shortlist, a bag that stays with you, and a clear record of every order.</p>
+                    <ul class="auth-side-list">
+                        <li><i class="fas fa-check" aria-hidden="true"></i>Save objects to a private list</li>
+                        <li><i class="fas fa-check" aria-hidden="true"></i>Keep your bag between visits</li>
+                        <li><i class="fas fa-check" aria-hidden="true"></i>Follow orders from your account</li>
+                    </ul>
                 </div>
-                <div class="col-lg-7 bg-white p-4 p-lg-5">
-                    <h2 class="h3 mb-1">Registration</h2>
-                    <p class="text-muted small mb-4">Fields marked with <span class="text-danger">*</span> are required.</p>
+                <p class="auth-visual__quote">“Choose slowly. Keep what earns its place.”<span>The EuphoriaDJ point of view</span></p>
+            </div>
 
-                    {% if form.non_field_errors %}
-                        <div class="alert alert-danger" role="alert">
-                            {% for error in form.non_field_errors %}{{ error }}{% endfor %}
-                        </div>
-                    {% endif %}
-
-                    <form method="post" action="{% url 'user_register' %}">
-                        {% csrf_token %}
-                        <div class="row g-3">
-                            <div class="col-12">
-                                <label for="name" class="form-label">Full name <span class="text-danger">*</span></label>
-                                {{ form.name }}
-                                {{ form.name.errors }}
-                            </div>
-                            <div class="col-md-7">
-                                <label for="email" class="form-label">Email address <span class="text-danger">*</span></label>
-                                {{ form.email }}
-                                {{ form.email.errors }}
-                            </div>
-                            <div class="col-md-5">
-                                <label for="phone" class="form-label">Phone number <span class="text-danger">*</span></label>
-                                {{ form.phone }}
-                                {{ form.phone.errors }}
-                            </div>
-                            <div class="col-md-6">
-                                <label for="password" class="form-label">Password <span class="text-danger">*</span></label>
-                                {{ form.password }}
-                                <div class="helptext">{{ form.password.help_text }}</div>
-                                {{ form.password.errors }}
-                            </div>
-                            <div class="col-md-6">
-                                <label for="confirmPassword" class="form-label">Confirm password <span class="text-danger">*</span></label>
-                                {{ form.confirm_password }}
-                                {{ form.confirm_password.errors }}
-                            </div>
-                            <div class="col-md-6">
-                                <label for="gender" class="form-label">Gender</label>
-                                {{ form.gender }}
-                                {{ form.gender.errors }}
-                            </div>
-                            <div class="col-md-6">
-                                <label for="country" class="form-label">Country</label>
-                                {{ form.country }}
-                                {{ form.country.errors }}
-                            </div>
-                            <div class="col-12">
-                                <div class="form-check">
-                                    <input class="form-check-input" type="checkbox" name="terms" id="terms" {% if form.terms.value %}checked{% endif %}>
-                                    <label class="form-check-label small" for="terms">
-                                        I agree to the terms and conditions
-                                    </label>
-                                    {{ form.terms.errors }}
-                                </div>
-                            </div>
-                        </div>
-                        <div class="d-grid mt-4">
-                            <button type="submit" class="btn btn-primary rounded-pill py-3">Create account</button>
-                        </div>
-                    </form>
-
-                    <p class="text-center text-muted small mt-4 mb-0">
-                        Already have an account? <a href="{% url 'user_login' %}" class="text-decoration-none">Sign in</a>
-                    </p>
+            <div class="auth-panel">
+                <div class="auth-panel__head">
+                    <span class="section-kicker">New client</span>
+                    <h2>Create your account.</h2>
+                    <p>Fields marked with <span class="text-danger">*</span> are required.</p>
                 </div>
+
+                {% if form.non_field_errors %}
+                    <div class="alert alert-danger mb-3" role="alert">
+                        {% for error in form.non_field_errors %}{{ error }}{% if not forloop.last %}<br>{% endif %}{% endfor %}
+                    </div>
+                {% endif %}
+
+                <form method="post" action="{% url 'user_register' %}">
+                    {% csrf_token %}
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <label for="name" class="form-label">Full name <span class="text-danger">*</span></label>
+                            {{ form.name }}
+                            {{ form.name.errors }}
+                        </div>
+                        <div class="col-md-7">
+                            <label for="email" class="form-label">Email address <span class="text-danger">*</span></label>
+                            {{ form.email }}
+                            {{ form.email.errors }}
+                        </div>
+                        <div class="col-md-5">
+                            <label for="phone" class="form-label">Phone number <span class="text-danger">*</span></label>
+                            {{ form.phone }}
+                            {{ form.phone.errors }}
+                        </div>
+                        <div class="col-md-6">
+                            <label for="password" class="form-label">Password <span class="text-danger">*</span></label>
+                            {{ form.password }}
+                            <div class="helptext">{{ form.password.help_text }}</div>
+                            {{ form.password.errors }}
+                        </div>
+                        <div class="col-md-6">
+                            <label for="confirmPassword" class="form-label">Confirm password <span class="text-danger">*</span></label>
+                            {{ form.confirm_password }}
+                            {{ form.confirm_password.errors }}
+                        </div>
+                        <div class="col-md-6">
+                            <label for="gender" class="form-label">Gender</label>
+                            {{ form.gender }}
+                            {{ form.gender.errors }}
+                        </div>
+                        <div class="col-md-6">
+                            <label for="country" class="form-label">Country</label>
+                            {{ form.country }}
+                            {{ form.country.errors }}
+                        </div>
+                        <div class="col-12">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="terms" id="terms" {% if form.terms.value %}checked{% endif %}>
+                                <label class="form-check-label" for="terms">I agree to the terms and conditions.</label>
+                                {{ form.terms.errors }}
+                            </div>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Create account <i class="fas fa-arrow-right" aria-hidden="true"></i></button>
+                </form>
+
+                <p class="auth-panel__footer">Already have an account? <a href="{% url 'user_login' %}">Sign in</a></p>
+                <p class="auth-panel__helper"><i class="fas fa-shield-alt" aria-hidden="true"></i> Your password is validated and stored securely. A welcome email is attempted only after your account is created.</p>
             </div>
         </div>
     </div>

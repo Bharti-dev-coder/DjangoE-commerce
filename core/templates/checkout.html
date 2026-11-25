@@ -2,45 +2,50 @@
 {% load static store_tags %}
 
 {% block title %}Checkout | EuphoriaDJ{% endblock %}
-{% block meta_description %}Review your EuphoriaDJ cart, delivery address, coupon, and payment method before placing an order.{% endblock %}
+{% block meta_description %}Review your EuphoriaDJ bag, delivery details and preferred payment method before placing your order.{% endblock %}
+{% block body_class %}page-checkout{% endblock %}
 
 {% block content %}
-<section class="page-banner">
+<section class="page-intro">
     <div class="container">
-        <nav aria-label="breadcrumb">
-            <ol class="breadcrumb breadcrumb-light mb-3">
+        <nav aria-label="Breadcrumb">
+            <ol class="breadcrumb">
                 <li class="breadcrumb-item"><a href="{% url 'home_page' %}">Home</a></li>
-                <li class="breadcrumb-item"><a href="{% url 'cart' %}">Cart</a></li>
-                <li class="breadcrumb-item active text-white" aria-current="page">Checkout</li>
+                <li class="breadcrumb-item"><a href="{% url 'cart' %}">Bag</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Checkout</li>
             </ol>
         </nav>
-        <h1 class="mb-2">Checkout</h1>
-        <p class="mb-0 text-white-50">Confirm your details, delivery address, and payment method.</p>
+        <div class="page-intro__row">
+            <div>
+                <span class="section-kicker">A considered conclusion</span>
+                <h1>Checkout.</h1>
+                <p>Confirm your details, choose a delivery address and select how you would like to pay.</p>
+            </div>
+            <p class="page-intro__aside">Your order is created only after a final server-side review. Payment success is never accepted from the browser alone.</p>
+        </div>
     </div>
 </section>
 
-<section class="container-fluid py-5">
-    <div class="container py-3">
+<section class="checkout-page">
+    <div class="container">
         <form method="post" action="{% url 'checkout' %}" id="checkoutForm" novalidate>
             {% csrf_token %}
             <input type="hidden" name="checkout_token" value="{{ checkout_token }}">
 
             {% if form.non_field_errors %}
-                <div class="alert alert-danger" role="alert">
-                    {% for error in form.non_field_errors %}<div>{{ error }}</div>{% endfor %}
+                <div class="alert alert-danger mb-4" role="alert">
+                    <div>{% for error in form.non_field_errors %}{{ error }}{% if not forloop.last %}<br>{% endif %}{% endfor %}</div>
                 </div>
             {% endif %}
 
-            <div class="row g-4">
-                <div class="col-lg-7">
-                    <div class="checkout-card p-4 p-lg-5 mb-4">
-                        <div class="d-flex align-items-center gap-3 mb-4">
-                            <span class="checkout-step">1</span>
-                            <div>
-                                <h2 class="h4 mb-1">Customer information</h2>
-                                <p class="text-muted small mb-0">We use these details for the order confirmation.</p>
-                            </div>
+            <div class="checkout-layout">
+                <div class="checkout-form">
+                    <section class="checkout-card" aria-labelledby="checkout-customer-heading">
+                        <div class="checkout-card__head">
+                            <span class="checkout-card__step">01</span>
+                            <h2 id="checkout-customer-heading">Customer information</h2>
                         </div>
+                        <p>We use these details to confirm your order and keep you informed.</p>
                         <div class="row g-3">
                             <div class="col-md-6">
                                 <label for="{{ form.full_name.id_for_label }}" class="form-label">{{ form.full_name.label }}</label>
@@ -58,22 +63,20 @@
                                 {% if form.phone.errors %}<div class="invalid-feedback d-block">{{ form.phone.errors|striptags }}</div>{% endif %}
                             </div>
                         </div>
-                    </div>
+                    </section>
 
-                    <div class="checkout-card p-4 p-lg-5 mb-4">
-                        <div class="d-flex align-items-center gap-3 mb-4">
-                            <span class="checkout-step">2</span>
-                            <div>
-                                <h2 class="h4 mb-1">Delivery address</h2>
-                                <p class="text-muted small mb-0">Choose a saved address or enter a new one.</p>
-                            </div>
+                    <section class="checkout-card" aria-labelledby="checkout-address-heading">
+                        <div class="checkout-card__head">
+                            <span class="checkout-card__step">02</span>
+                            <h2 id="checkout-address-heading">Delivery address</h2>
                         </div>
+                        <p>Choose a saved address or add a new one for this order.</p>
 
                         <div class="mb-4">
                             <label for="{{ form.saved_address.id_for_label }}" class="form-label">{{ form.saved_address.label }}</label>
                             {{ form.saved_address }}
                             {% if form.saved_address.errors %}<div class="invalid-feedback d-block">{{ form.saved_address.errors|striptags }}</div>{% endif %}
-                            <p class="small text-muted mt-2 mb-0">Select a saved address to reuse it, or leave this on “Use a new delivery address”.</p>
+                            <p class="form-text mt-2 mb-0">Select a saved address to reuse it, or leave this on “Use a new delivery address”.</p>
                         </div>
 
                         <div id="new-address-fields">
@@ -124,22 +127,21 @@
                                     {% if form.country.errors %}<div class="invalid-feedback d-block">{{ form.country.errors|striptags }}</div>{% endif %}
                                 </div>
                             </div>
+
                             <div class="form-check mt-4">
                                 {{ form.save_address }}
                                 <label class="form-check-label" for="{{ form.save_address.id_for_label }}">{{ form.save_address.label }}</label>
                                 {% if form.save_address.errors %}<div class="invalid-feedback d-block">{{ form.save_address.errors|striptags }}</div>{% endif %}
                             </div>
                         </div>
-                    </div>
+                    </section>
 
-                    <div class="checkout-card p-4 p-lg-5">
-                        <div class="d-flex align-items-center gap-3 mb-4">
-                            <span class="checkout-step">3</span>
-                            <div>
-                                <h2 class="h4 mb-1">Payment method</h2>
-                                <p class="text-muted small mb-0">Choose how you want to pay for this order.</p>
-                            </div>
+                    <section class="checkout-card" aria-labelledby="checkout-payment-heading">
+                        <div class="checkout-card__head">
+                            <span class="checkout-card__step">03</span>
+                            <h2 id="checkout-payment-heading">Payment method</h2>
                         </div>
+                        <p>Choose how you would like to settle this order.</p>
 
                         <div class="payment-options">
                             {% for radio in form.payment_method %}
@@ -148,97 +150,80 @@
                                     <label class="form-check-label" for="{{ radio.id_for_label }}">
                                         <strong>{{ radio.choice_label }}</strong>
                                         {% if radio.data.value == 'cod' %}
-                                            <span class="d-block small text-muted">Pay the delivery partner when your order arrives. Payment status stays pending until collection.</span>
+                                            <span class="payment-option__description">Pay the delivery partner when your order arrives. Payment status remains pending until collection.</span>
                                         {% else %}
-                                            <span class="d-block small text-muted">Pay securely through Razorpay. The order is confirmed only after server-side signature verification.</span>
+                                            <span class="payment-option__description">Pay securely through Razorpay. The order is confirmed only after server-side signature verification.</span>
                                         {% endif %}
                                     </label>
                                 </div>
                             {% endfor %}
                         </div>
-                        {% if form.payment_method.errors %}<div class="invalid-feedback d-block">{{ form.payment_method.errors|striptags }}</div>{% endif %}
+                        {% if form.payment_method.errors %}<div class="invalid-feedback d-block mt-2">{{ form.payment_method.errors|striptags }}</div>{% endif %}
                         {% if not razorpay_enabled %}
                             <div class="alert alert-warning small mt-3 mb-0" role="alert">
-                                <i class="fas fa-info-circle me-2"></i>Online payment is not configured yet. Cash on Delivery is available. Add
-                                <code>RAZORPAY_KEY_ID</code> and <code>RAZORPAY_KEY_SECRET</code> to the environment to enable Razorpay.
+                                <i class="fas fa-info-circle me-2" aria-hidden="true"></i>Online payment is not configured yet. Cash on Delivery is available. Add <code>RAZORPAY_KEY_ID</code> and <code>RAZORPAY_KEY_SECRET</code> to the environment to enable Razorpay.
                             </div>
                         {% endif %}
-                    </div>
+                    </section>
                 </div>
 
-                <div class="col-lg-5">
-                    <div class="order-summary p-4 sticky-lg-top" style="top: 1rem;">
-                        <div class="d-flex justify-content-between align-items-start gap-3 mb-4">
-                            <div>
-                                <h2 class="h4 mb-1">Order review</h2>
-                                <p class="text-muted small mb-0">{{ total_quantity }} item{{ total_quantity|pluralize }}</p>
-                            </div>
-                            <a href="{% url 'cart' %}" class="btn btn-sm btn-outline-secondary rounded-pill">Edit cart</a>
+                <aside class="checkout-summary">
+                    <div class="summary-card">
+                        <div class="summary-card__title">
+                            Order review
+                            <span>{{ total_quantity }} item{{ total_quantity|pluralize }}</span>
                         </div>
 
-                        <div class="checkout-items mb-4">
+                        <div class="checkout-items">
                             {% for item in items %}
-                                <div class="checkout-item d-flex gap-3 py-3">
+                                <div class="checkout-item">
                                     {% if item.product.image %}
-                                        <img src="{{ item.product.image.url }}" class="checkout-thumb" alt="{{ item.product.name }}">
+                                        <img src="{{ item.product.image.url }}" alt="{{ item.product.name }}" loading="lazy" decoding="async">
                                     {% else %}
-                                        <img src="{% static 'theme/img/product-1.png' %}" class="checkout-thumb" alt="{{ item.product.name }}">
+                                        <img src="{% static 'theme/img/product-1.png' %}" alt="{{ item.product.name }}" loading="lazy" decoding="async">
                                     {% endif %}
-                                    <div class="flex-grow-1">
-                                        <div class="d-flex justify-content-between gap-2">
-                                            <span class="fw-semibold small">{{ item.product.name }}</span>
-                                            <span class="small text-nowrap">{{ item.subtotal|money }}</span>
-                                        </div>
-                                        <span class="d-block small text-muted">{{ item.product.price|money }} × {{ item.quantity }}</span>
+                                    <div>
+                                        <p class="checkout-item__name">{{ item.product.name }}</p>
+                                        <p class="checkout-item__meta">{{ item.product.price|money }} × {{ item.quantity }}</p>
                                     </div>
+                                    <span class="checkout-item__price">{{ item.subtotal|money }}</span>
                                 </div>
                             {% endfor %}
                         </div>
 
-                        <div class="d-flex justify-content-between mb-3">
-                            <span class="text-muted">Subtotal</span>
-                            <span class="fw-semibold">{{ subtotal|money }}</span>
-                        </div>
-                        <div class="d-flex justify-content-between mb-2">
-                            <span class="text-muted">Coupon{% if coupon %} ({{ coupon.code }}){% endif %}</span>
-                            <span class="text-success">−{{ coupon_discount|money }}</span>
-                        </div>
-                        {% if not coupon %}
-                            <p class="small text-muted mb-3"><a href="{% url 'cart' %}" class="text-decoration-none">Apply a coupon in the cart</a></p>
-                        {% endif %}
-                        <div class="d-flex justify-content-between mb-2">
-                            <span class="text-muted">Shipping</span>
-                            {% if shipping_charge %}
-                                <span class="fw-semibold">{{ shipping_charge|money }}</span>
-                            {% else %}
-                                <span class="text-success fw-semibold">Free</span>
+                        <div class="mt-3">
+                            <div class="summary-row"><span>Subtotal</span><strong>{{ subtotal|money }}</strong></div>
+                            <div class="summary-row summary-row--discount"><span>Coupon{% if coupon %} · {{ coupon.code }}{% endif %}</span><strong>−{{ coupon_discount|money }}</strong></div>
+                            {% if not coupon %}
+                                <p class="coupon-hint mb-2"><a href="{% url 'cart' %}" class="text-decoration-underline">Apply a coupon in your bag</a></p>
                             {% endif %}
-                        </div>
-                        <div class="d-flex justify-content-between mb-3">
-                            <span class="text-muted">Tax</span>
-                            <span class="fw-semibold">{{ tax_amount|money }}</span>
-                        </div>
-                        <div class="d-flex justify-content-between border-top pt-3 mt-3">
-                            <span class="h5 mb-0">Final payable</span>
-                            <span class="h5 mb-0 text-primary">{{ cart_total|money }}</span>
+                            <div class="summary-row">
+                                <span>Shipping</span>
+                                {% if shipping_charge %}<strong>{{ shipping_charge|money }}</strong>{% else %}<strong class="text-success">Complimentary</strong>{% endif %}
+                            </div>
+                            <div class="summary-row"><span>Tax</span><strong>{{ tax_amount|money }}</strong></div>
+                            <div class="summary-row summary-row--total"><span>Final payable</span><strong>{{ cart_total|money }}</strong></div>
                         </div>
 
-                        <button type="submit" class="btn btn-primary btn-lg rounded-pill w-100 py-3 mt-4" id="placeOrderButton">
-                            <i class="fas fa-lock me-2"></i>Place order
+                        <button type="submit" class="btn btn-primary btn--full" id="placeOrderButton">
+                            Place order <i class="fas fa-arrow-right" aria-hidden="true"></i>
                         </button>
-                        <p class="small text-muted mt-3 mb-0">
-                            <i class="fas fa-shield-alt me-1"></i>Your order totals and coupon are verified on the server. Payment success is never accepted from the browser alone.
-                        </p>
+                        <p class="summary-card__note"><i class="fas fa-shield-alt" aria-hidden="true"></i> Server-verified totals · Secure payment</p>
+
+                        <div class="d-flex justify-content-between align-items-center gap-2 mt-3 pt-3 border-top">
+                            <a href="{% url 'cart' %}" class="text-link">Edit bag</a>
+                            <span class="small text-muted">Order step 03 / 03</span>
+                        </div>
 
                         {% if store_profile %}
-                            <div class="border-top mt-4 pt-3 small text-muted">
+                            <div class="mt-3 pt-3 border-top small text-muted">
                                 <strong class="d-block text-dark mb-1">{{ store_profile.business_name }}</strong>
                                 {% if store_profile.email %}<span class="d-block">{{ store_profile.email }}</span>{% endif %}
                                 {% if store_profile.contact_number %}<span class="d-block">{{ store_profile.contact_number }}</span>{% endif %}
                             </div>
                         {% endif %}
                     </div>
-                </div>
+                </aside>
             </div>
         </form>
     </div>
