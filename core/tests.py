@@ -3,6 +3,7 @@ import hmac
 import tempfile
 from datetime import timedelta
 from decimal import Decimal
+from io import StringIO
 from pathlib import Path
 from unittest.mock import patch
 
@@ -11,6 +12,7 @@ from django.contrib.auth.models import User
 from django.contrib.staticfiles import finders
 from django.core import mail
 from django.core.files.uploadedfile import SimpleUploadedFile
+from django.core.management import call_command
 from django.test import Client, TestCase, override_settings
 from django.urls import reverse
 from django.utils import timezone
@@ -2155,3 +2157,60 @@ class CurrencyAndStoreProfileTests(TestCase):
         self.assertEqual(profile.business_name, 'EuphoriaDJ')
         self.assertEqual(profile.country, 'India')
         self.assertEqual(profile.email, 'support@euphoriasj.com')
+
+class DemoCatalogCommandTests(TestCase):
+    def setUp(self):
+        self.category = Category.objects.create(
+            name='Laptops',
+            slug='laptops',
+            description='Portable computers for work, study, and creative projects.',
+        )
+        self.product = Product.objects.create(
+            slug='aurora-x1-smartphone',
+            name='Aurora X1 Smartphone',
+            category=self.category,
+            price=Decimal('649.00'),
+            description='Demo catalog item. Placeholder description.',
+            available=True,
+        )
+
+    def run_demo_catalog(self):
+        call_command('populate_demo_data', stdout=StringIO())
+
+    def test_legacy_demo_rows_are_corrected_in_place(self):
+        with tempfile.TemporaryDirectory() as media_root:
+            with self.settings(MEDIA_ROOT=Path(media_root)):
+                self.run_demo_catalog()
+
+        self.product.refresh_from_db()
+        self.category.refresh_from_db()
+
+        self.assertEqual(self.product.slug, 'polaroid-onestep-2-instant-camera')
+        self.assertEqual(self.product.name, 'Polaroid OneStep 2 Instant Camera')
+        self.assertEqual(self.product.category.name, 'Cameras')
+        self.assertEqual(self.product.price, Decimal('11999.00'))
+        self.assertEqual(
+            self.product.image.name,
+            'products/demo-polaroid-onestep-2-instant-camera.png',
+        )
+        self.assertFalse(self.product.description.startswith('Demo catalog item.'))
+        self.assertEqual(self.category.name, 'Computers')
+        self.assertEqual(Product.objects.count(), 19)
+        self.assertTrue(Product.objects.filter(slug='vivo-v70-fe-5g').exists())
+
+    def test_manual_edits_survive_a_later_demo_sync(self):
+        with tempfile.TemporaryDirectory() as media_root:
+            with self.settings(MEDIA_ROOT=Path(media_root)):
+                self.run_demo_catalog()
+
+                product = Product.objects.get(slug='vivo-v70-fe-5g')
+                product.name = 'vivo V70 FE — Store Edition'
+                product.price = Decimal('37999.00')
+                product.save(update_fields=['name', 'price'])
+
+                self.run_demo_catalog()
+
+        product.refresh_from_db()
+        self.assertEqual(product.name, 'vivo V70 FE — Store Edition')
+        self.assertEqual(product.price, Decimal('37999.00'))
+        self.assertEqual(Product.objects.count(), 19)

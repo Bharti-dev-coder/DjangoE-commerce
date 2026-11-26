@@ -99,8 +99,19 @@
                         <div class="category-card__top">
                             <span class="category-card__index">{{ forloop.counter|stringformat:"02d" }}</span>
                             <span class="category-card__icon">
-                                {% cycle 'fas fa-mobile-alt' 'fas fa-laptop' 'fas fa-headphones' 'fas fa-camera' 'fas fa-clock' 'fas fa-plug' as category_icon silent %}
-                                <i class="{{ category_icon }}" aria-hidden="true"></i>
+                                {% if category.slug == 'smartphones' %}
+                                    <i class="fas fa-mobile-alt" aria-hidden="true"></i>
+                                {% elif category.slug == 'laptops' %}
+                                    <i class="fas fa-laptop" aria-hidden="true"></i>
+                                {% elif category.slug == 'audio' %}
+                                    <i class="fas fa-headphones" aria-hidden="true"></i>
+                                {% elif category.slug == 'cameras' %}
+                                    <i class="fas fa-camera" aria-hidden="true"></i>
+                                {% elif category.slug == 'wearables' %}
+                                    <i class="fas fa-clock" aria-hidden="true"></i>
+                                {% else %}
+                                    <i class="fas fa-plug" aria-hidden="true"></i>
+                                {% endif %}
                             </span>
                         </div>
                         <div>

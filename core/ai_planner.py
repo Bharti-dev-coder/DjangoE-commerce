@@ -56,6 +56,16 @@ CATEGORY_HINTS = {
     'notebook': 'Laptops',
     'notebooks': 'Laptops',
     'chromebook': 'Laptops',
+    'computer': 'Computers',
+    'computers': 'Computers',
+    'desktop': 'Computers',
+    'desktops': 'Computers',
+    'monitor': 'Computers',
+    'monitors': 'Computers',
+    'display': 'Computers',
+    'displays': 'Computers',
+    'pc': 'Computers',
+    'pcs': 'Computers',
     'headphone': 'Audio',
     'headphones': 'Audio',
     'earbud': 'Audio',
@@ -79,6 +89,14 @@ CATEGORY_HINTS = {
     'charger': 'Accessories',
     'tripod': 'Accessories',
     'case': 'Accessories',
+}
+
+# Older catalogs used "Laptops" while newer ones group laptops, desktops and
+# displays under "Computers". Keep both names working for natural-language
+# category queries.
+CATEGORY_ALIASES = {
+    'laptops': ('computers',),
+    'computers': ('laptops',),
 }
 
 STOPWORDS = {
@@ -110,6 +128,8 @@ SUPPORT_KEYWORDS = {
 SYNONYM_TERMS = {
     'audio': ['headphones', 'earbuds', 'speaker'],
     'camera': ['camera', 'lens'],
+    'laptops': ['laptop'],
+    'computers': ['computer'],
     'charging': ['charger', 'hub', 'charging'],
     'fitness': ['fitness', 'band', 'watch', 'active'],
     'gaming': ['laptop', 'chromebook'],
@@ -235,8 +255,14 @@ def _find_category(text, context):
     words = re.findall(r'[a-z0-9]+(?:-[a-z0-9]+)*', lower)
     for word in words:
         hint = CATEGORY_HINTS.get(word)
-        if hint and hint.lower() in categories:
-            return categories[hint.lower()]
+        if not hint:
+            continue
+        hint_key = hint.lower()
+        if hint_key in categories:
+            return categories[hint_key]
+        for alias in CATEGORY_ALIASES.get(hint_key, ()):
+            if alias in categories:
+                return categories[alias]
     return ''
 
 
